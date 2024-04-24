@@ -14,7 +14,7 @@
 
 blueprint:
   name: Solarflow device control
-  description: 'Control power in and battery charging for solarflow devices'
+  description: 'Control power in and battery charging for solarflow devices. Multiple Solarflow are possible.'
   source_url: https://github.com/ricariel/home-assistant-blueprints/blob/main/blueprints/automation/ricariel/control-solarflow.yaml
   domain: automation
   input:
