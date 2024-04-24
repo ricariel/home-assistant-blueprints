@@ -15,7 +15,7 @@
 blueprint:
   name: Solarflow device control
   description: 'Control power in and battery charging for solarflow devices'
-  source_url: https://git.zyria.de/pyrox/home-assistant-blueprints/raw/branch/main/blueprints/automation/ricariel/control-solarflow.yaml
+  source_url: https://github.com/ricariel/home-assistant-blueprints/blob/main/blueprints/automation/ricariel/control-solarflow.yaml
   domain: automation
   input:
     battery_level_sensor:
