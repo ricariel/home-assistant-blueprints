@@ -1,17 +1,4 @@
 ---
-
-# Was funktioniert:
-#  - Simulierter Bypass mit 90% vom Referenzwert
-#  - Boost Modus
-#  - Morgendämmerung
-#  - Tagesverlauf
-#  - Akkus leer
-#  - Akkus mindestens einmal alle x füllen (immer wenn einmal leer)
-#
-# Probleme:
-#  - Abenddämmerung
-#  - Schwingen bei mehr als einem Solarflow
-
 blueprint:
   name: Solarflow device control
   description: 'Control power in and battery charging for solarflow devices. Multiple Solarflow are possible.'
