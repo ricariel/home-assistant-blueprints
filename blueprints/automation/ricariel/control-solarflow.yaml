@@ -300,4 +300,4 @@ action:
 mode: single
 max_exceeded: silent
 trace:
-  stored_traces: 20
+  stored_traces: 100
