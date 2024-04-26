@@ -294,8 +294,8 @@ action:
       until:
         - condition: numeric_state
           entity_id: !input smartmeter_input_sensor
-          above: -10
-          below: 10
+          above: -15
+          below: 1
 
 mode: single
 max_exceeded: silent
