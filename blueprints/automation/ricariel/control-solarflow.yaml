@@ -289,13 +289,13 @@ action:
         - wait_for_trigger:
             - platform: state
               entity_id: !input output_home_power
-          timeout: '00:00:10'
+          timeout: '00:00:05'
 
       until:
         - condition: numeric_state
           entity_id: !input smartmeter_input_sensor
           above: -20
-          below: -5
+          below: 5
 
 mode: single
 max_exceeded: silent
