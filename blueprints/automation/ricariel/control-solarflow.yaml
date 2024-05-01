@@ -318,9 +318,9 @@ action:
 
         - wait_for_trigger:
             - platform: state
-              entity_id: !input output_home_power
+              entity_id: !input smartmeter_input_sensor
           timeout: '00:00:05'
-
+          
       until:
         - condition: numeric_state
           entity_id: !input smartmeter_input_sensor
