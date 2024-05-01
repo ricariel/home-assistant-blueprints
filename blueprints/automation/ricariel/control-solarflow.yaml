@@ -183,6 +183,8 @@ variables:
   output_home_power: !input output_home_power
   smartmeter_input_sensor: !input smartmeter_input_sensor
   num_percentage: !input num_percentage
+  num_lower_power_acceptance: !input num_lower_power_acceptance
+  num_upper_power_acceptance: !input num_upper_power_acceptance
   num_panels: !input num_panels
   num_bat_full: !input num_bat_full
   num_bat_empty: !input num_bat_empty
@@ -275,7 +277,7 @@ action:
             requested_power: |-
               {{
                 states(output_home_power)|int+(states(smartmeter_input_sensor)|int/100*num_percentage)|int-
-                ((!input num_lower_power_acceptance+!input num_upper_power_acceptance)/2)|int
+                ((num_lower_power_acceptance+num_upper_power_acceptance)/2)|int
               }}
 
             limit: |-
