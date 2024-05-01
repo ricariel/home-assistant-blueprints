@@ -91,7 +91,9 @@ blueprint:
       default: 100
       selector:
         number:
-          mode: box
+          min: 0
+          max: 100
+          mode: slider
 
     num_bat_empty:
       name: Number when battery is empty
@@ -99,7 +101,9 @@ blueprint:
       default: 10
       selector:
         number:
-          mode: box
+          min: 0
+          max: 100
+          mode: slider
 
     num_percentage:
       name: Percentage of power to cover
