@@ -223,14 +223,14 @@ action:
         - variables:
             min_limit_bat_full: |-
               {% if bat_full  %}
-                {{ (states(alternative_power_sensor)|int/100*90)|int }}
+                {{ (states(alternative_power_sensor)|int(0)/100*90)|int }}
               {% else %}
                 {{ 0|int }}
               {% endif %}
 
             min_limit_darkness: |-
               {{
-                10 if states(alternative_power_sensor)|int < 15 else 0
+                10 if states(alternative_power_sensor)|int(0) < 15 else 0
               }}
 
             min_limit_boost: |-
