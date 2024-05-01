@@ -118,18 +118,21 @@ blueprint:
       default: 10
       selector:
         number:
+          min: -100
+          max: 100
           unit_of_measurement: "W"
-          mode: box
+          mode: slider
 
     num_lower_power_acceptance:
       name: Lower Limit we want to get
       description: ''
-      default: -10
+      default: '-10'
       selector:
         number:
+          min: -100
+          max: 100
           unit_of_measurement: "W"
-          mode: box
-
+          mode: slider
 
 
     num_inverter_limit:
