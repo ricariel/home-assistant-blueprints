@@ -112,6 +112,26 @@ blueprint:
           unit_of_measurement: "%"
           mode: box
 
+    num_upper_power_acceptance:
+      name: Upper Limit we want to get
+      description: ''
+      default: 10
+      selector:
+        number:
+          unit_of_measurement: "W"
+          mode: box
+
+    num_lower_power_acceptance:
+      name: Lower Limit we want to get
+      description: ''
+      default: -10
+      selector:
+        number:
+          unit_of_measurement: "W"
+          mode: box
+
+
+
     num_inverter_limit:
       name: Maximum limit from inverter per connected slots
       description: ''
@@ -294,8 +314,8 @@ action:
       until:
         - condition: numeric_state
           entity_id: !input smartmeter_input_sensor
-          above: -20
-          below: 5
+          above: !input num_lower_power_acceptance
+          below: !input num_upper_power_acceptance
 
 mode: single
 max_exceeded: silent
