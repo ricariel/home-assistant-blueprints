@@ -274,7 +274,8 @@ action:
 
             requested_power: |-
               {{
-                states(output_home_power)|int+(states(smartmeter_input_sensor)|int/100*num_percentage)|int
+                states(output_home_power)|int+(states(smartmeter_input_sensor)|int/100*num_percentage)|int-
+                ((num_lower_power_acceptance+num_upper_power_acceptance)/2)|int
               }}
 
             limit: |-
