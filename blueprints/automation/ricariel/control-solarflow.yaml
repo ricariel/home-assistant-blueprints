@@ -143,7 +143,7 @@ blueprint:
     num_percentage:
       name: Prozentualer Anteil an der Stromlieferung
       description: Wieviel soll dieser Hub zur Stromlieferung an das Haus
-        beitragen? Beispiel: Zwei Solarflow Hub1200. Einer mit einem Akku
+        beitragen? Beispiel Zwei Solarflow Hub1200. Einer mit einem Akku
         einer mit drei. Der mit einem Akku sollte 25% beitragen und der mit
         drei Akkus darf 75% beitragen. Hast du nur einen Hub, gibst du 100%
         an. Die Regelung Wird immer auf den Eingestellten Wert hin arbeiten
