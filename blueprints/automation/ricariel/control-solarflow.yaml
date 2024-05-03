@@ -27,6 +27,7 @@ blueprint:
       - Hier werden Daten geschrieben. Numbers sind Schalter um den Hub zu steuern. Im von Zendure getrennten Zustand hört der Hub unter iot/<product_id>/<device_id>/ auf Befehle im MQTT.
 
     Das Original dieses Blueprint liegt unter [https://git.zyria.de/pyrox/home-assistant-blueprints.git](https://git.zyria.de/pyrox/home-assistant-blueprints.git)
+
   source_url: https://github.com/ricariel/home-assistant-blueprints/blob/main/blueprints/automation/ricariel/control-solarflow.yaml
   domain: automation
   author: Fabrice Kirchner
