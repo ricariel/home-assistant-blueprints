@@ -1,13 +1,17 @@
 ---
 blueprint:
-  name: Solarflow device control
-  description: 'Control power in and battery charging for solarflow devices. Multiple Solarflow are possible.'
+  name: Solarflow Hub Controler
+  description: |-
+    'Diese Automation kontrolliert das Lade- und Einspeiseverhalten eines
+    Solarflow Hub. Als Bedingung müssen Solarflow Sensoren in Home Assistant
+    angelegt werden zum Beispiel über MQTT. Ausserdem müssen Schalter
+    erstellt werden um diverse Werte zu steuern.'
   source_url: https://github.com/ricariel/home-assistant-blueprints/blob/main/blueprints/automation/ricariel/control-solarflow.yaml
   domain: automation
   input:
     battery_level_sensor:
       name: Battery level sensor
-      description: ''
+      description: 'Choose a sensor which re'
       selector:
         entity:
           domain:
@@ -264,7 +268,7 @@ action:
 
             min_limit_boost: |-
               {{
-                states(num_inverter_limit)|int if states(num_inverter_limit)|int < states(smartmeter_input_sensor)|int else 0
+                states(num_inverter_limit)|int if states(num_inverter_limit)|int/0.3 < states(smartmeter_input_sensor)|int else 0
               }}
 
             min_limit: |-
@@ -319,7 +323,7 @@ action:
             - platform: state
               entity_id: !input smartmeter_input_sensor
           timeout: '00:00:05'
-          
+
       until:
         - condition: numeric_state
           entity_id: !input smartmeter_input_sensor
