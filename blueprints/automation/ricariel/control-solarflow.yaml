@@ -1,17 +1,29 @@
 ---
 blueprint:
   name: Solarflow Hub Controler
-  description: |-
-    'Diese Automation kontrolliert das Lade- und Einspeiseverhalten eines
+  description: >-
+    # Solarflow Hub Controler
+
+    Diese Automation kontrolliert das Lade- und Einspeiseverhalten eines
     Solarflow Hub. Als Bedingung müssen Solarflow Sensoren in Home Assistant
     angelegt werden zum Beispiel über MQTT. Ausserdem müssen Schalter
-    erstellt werden um diverse Werte zu steuern.'
+    erstellt werden um diverse Werte zu steuern.
+
+    # Bedingungen
+    - Sensor
+      - Hier werden Daten gelesen. Die Sensoren sollten häufig aktualisiert
+        werden, damit eine genaue Steuerung möglich ist
+    - Number
+      - Hier werden Daten geschrieben. Numbers sind Schalter um den Hub zu steuern. Im von Zendure getrennten Zustand hört der Hub unter iot/<product_id>/<device_id>/ auf Befehle im MQTT.
+
+    Das Original liegt unter [https://git.zyria.de/pyrox/home-assistant-blueprints.git](https://git.zyria.de/pyrox/home-assistant-blueprints.git)
   source_url: https://github.com/ricariel/home-assistant-blueprints/blob/main/blueprints/automation/ricariel/control-solarflow.yaml
   domain: automation
+  author: Fabrice Kirchner
   input:
     battery_level_sensor:
-      name: Battery level sensor
-      description: 'Choose a sensor which re'
+      name: Batterieladestand Sensor
+      description: Ein Sensor, welchen den aktuellen Batterieladestand wiedergibt. Bei mir electricLevel
       selector:
         entity:
           domain:
@@ -22,8 +34,8 @@ blueprint:
             device_class: battery
 
     output_limit_sensor:
-      name: Current output limit sensor
-      description: ''
+      name: Einspeiselimit Sensor
+      description: Das aktuelle Einspeiselimit des Hub. Bei mir outputLimit
       selector:
         entity:
           domain:
@@ -34,8 +46,8 @@ blueprint:
             device_class: power
 
     output_limit_number:
-      name: Current output limit number
-      description: ''
+      name: Einspeiselimit Schalter
+      description: 'Eine Number zum Einstellen des Einspeiselimit. Bei mir outputLimit'
       selector:
         entity:
           domain:
