@@ -262,8 +262,8 @@ condition:
   - condition: template
     value_template: |-
       {{
-        states(smartmeter_input_sensor) > num_upper_power_acceptance and
-        states(smartmeter_input_sensor) < num_lower_power_acceptance
+        trigger.to_state.state|int > !input num_upper_power_acceptance|int and
+        trigger.to_state.state|int < !input num_lower_power_acceptance|int
       }}
 
 action:
