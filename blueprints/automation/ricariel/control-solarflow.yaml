@@ -259,10 +259,12 @@ trigger:
       - !input smartmeter_input_sensor
 
 condition:
-  - condition: numeric_state
-    entity_id: !input smartmeter_input_sensor
-    above: !input num_upper_power_acceptance
-    below: !input num_lower_power_acceptance
+  - condition: template
+    value_template: |-
+      {{
+        states(smartmeter_input_sensor) > num_upper_power_acceptance and
+        states(smartmeter_input_sensor) < num_lower_power_acceptance
+      }}
 
 action:
   - variables:
