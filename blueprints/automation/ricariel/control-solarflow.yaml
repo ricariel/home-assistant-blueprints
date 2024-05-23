@@ -262,7 +262,7 @@ condition:
   - condition: template
     value_template: |-
       {{
-        trigger.to_state.state|int > num_upper_power_acceptance|int and
+        trigger.to_state.state|int > num_upper_power_acceptance|int or
         trigger.to_state.state|int < num_lower_power_acceptance|int
       }}
 
