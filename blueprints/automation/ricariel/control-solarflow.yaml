@@ -258,137 +258,129 @@ trigger:
     entity_id:
       - !input smartmeter_input_sensor
 
-condition: []
+condition:
+  - condition: numeric_state
+    entity_id: !input smartmeter_input_sensor
+    above: !input num_lower_power_acceptance
+    below: !input num_upper_power_acceptance
+
 action:
-  - repeat:
-      sequence:
-        - variables:
-            # is battery full?
-            bat_full: |-
-              {{ ((states(battery_level_sensor)|int >= num_bat_full|int)) }}
-            # is battery empty?
-            bat_empty: |-
-              {{ ((states(battery_level_sensor)|int <= num_bat_empty|int)) }}
+  - variables:
+      # is battery full?
+      bat_full: |-
+        {{ ((states(battery_level_sensor)|int >= num_bat_full|int)) }}
+      # is battery empty?
+      bat_empty: |-
+        {{ ((states(battery_level_sensor)|int <= num_bat_empty|int)) }}
 
-        # Battery full and previously set to stop discharge
-        - if:
-            - condition: template
-              value_template: |-
-                {{
-                  (bat_full) and states(max_discharge_level_sensor)|int >= num_bat_full|int
-                }}
-          then:
-            - service: number.set_value
-              target:
-                entity_id:
-                  - !input max_discharge_level_number
-              metadata: {}
-              data:
-                value: num_bat_empty
+  # Battery full and previously set to stop discharge
+  - if:
+      - condition: template
+        value_template: |-
+          {{
+            (bat_full) and states(max_discharge_level_sensor)|int >= num_bat_full|int
+          }}
+    then:
+      - service: number.set_value
+        target:
+          entity_id:
+            - !input max_discharge_level_number
+        metadata: {}
+        data:
+          value: num_bat_empty
 
-        # Battery empty disable discharging until full
-        - if:
-            - condition: template
-              value_template: |-
-                {{
-                  bat_empty
-                }}
-          then:
-            - service: number.set_value
-              target:
-                entity_id:
-                  - !input max_discharge_level_number
-              metadata: {}
-              data:
-                value: num_bat_full
-            - stop: "Stoppping loop. Nothing to set"
+  # Battery empty disable discharging until full
+  - if:
+      - condition: template
+        value_template: |-
+          {{
+            bat_empty
+          }}
+    then:
+      - service: number.set_value
+        target:
+          entity_id:
+            - !input max_discharge_level_number
+        metadata: {}
+        data:
+          value: num_bat_full
+      - stop: "Stoppping loop. Nothing to set"
 
-        - variables:
-            # When battery is full, set min_limit to 90% of alternative_power_sensor
-            min_limit_bat_full: |-
-              {% if bat_full  %}
-                {{ (states(alternative_power_sensor)|int(0)/100*90)|int }}
-              {% else %}
-                {{ 0|int }}
-              {% endif %}
+  - variables:
+      # When battery is full, set min_limit to 90% of alternative_power_sensor
+      min_limit_bat_full: |-
+        {% if bat_full  %}
+          {{ (states(alternative_power_sensor)|int(0)/100*90)|int }}
+        {% else %}
+          {{ 0|int }}
+        {% endif %}
 
-            # When it is dark outside (night) set a minimum limit to prevent inverter stop
-            min_limit_darkness: |-
-              {{
-                10 if states(alternative_power_sensor)|int(0) < 15 else 0
-              }}
+      # When it is dark outside (night) set a minimum limit to prevent inverter stop
+      min_limit_darkness: |-
+        {{
+          10 if states(alternative_power_sensor)|int(0) < 15 else 0
+        }}
 
-            # boost function if demand is higher than 30% of maximum
-            min_limit_boost: |-
-              {{
-                states(num_inverter_limit)|int if states(num_inverter_limit)|int/0.3 < states(smartmeter_input_sensor)|int else 0
-              }}
+      # boost function if demand is higher than 30% of maximum
+      min_limit_boost: |-
+        {{
+          states(num_inverter_limit)|int if states(num_inverter_limit)|int/0.3 < states(smartmeter_input_sensor)|int else 0
+        }}
 
-            # calculate min_limit
-            min_limit: |-
-              {{ max(
-                [
-                  min_limit_bat_full*num_panels,
-                  min_limit_darkness*num_panels,
-                  min_limit_boost
-                ])|int
-              }}
+      # calculate min_limit
+      min_limit: |-
+        {{ max(
+          [
+            min_limit_bat_full*num_panels,
+            min_limit_darkness*num_panels,
+            min_limit_boost
+          ])|int
+        }}
 
-            # calculate max_limit
-            max_limit: |-
-              {{
-                states(num_inverter_limit)|int if states(battery_level_sensor)|int >= states(max_discharge_level_sensor)|int else 0
-              }}
+      # calculate max_limit
+      max_limit: |-
+        {{
+          states(num_inverter_limit)|int if states(battery_level_sensor)|int >= states(max_discharge_level_sensor)|int else 0
+        }}
 
-            # get demand and shrink to local instance
-            requested_power: |-
-              {{
-                states(output_home_power)|int+(states(smartmeter_input_sensor)|int/100*num_percentage)|int
-              }}
+      # get demand and shrink to local instance
+      requested_power: |-
+        {{
+          ((num_lower_power_acceptance|int+num_upper_power_acceptance|int)/2)|int+
+          states(output_home_power)|int+
+          (states(smartmeter_input_sensor)|int/100*num_percentage)|int
+        }}
 
-            # calculate limit
-            limit: |-
-              {{
-                min([
-                  max([
-                    requested_power,
-                    min_limit
-                  ]),
-                  max_limit
-                ])
-              }}
+      # calculate limit
+      limit: |-
+        {{
+          min([
+            max([
+              requested_power,
+              min_limit
+            ]),
+            max_limit
+          ])
+        }}
 
-        # Stop if nothing to do
-        - if:
-            - condition: template
-              value_template: |-
-                {{
-                  limit|int == states(output_limit_sensor)|int
-                }}
-          then:
-            - stop: "Stoppping loop. Nothing to set"
+  # Stop if nothing to do
+  - if:
+      - condition: template
+        value_template: |-
+          {{
+            limit|int == states(output_limit_sensor)|int
+          }}
+    then:
+      - stop: "Stoppping loop. Nothing to set"
 
-
-        # Set limit
-        - service: number.set_value
-          target:
-            entity_id:
-              - !input output_limit_number
-          metadata: {}
-          data:
-            value: "{{ limit }}"
-
-        # Delay to let solarflow recognize the change
-        - wait_for_trigger:
-            - platform: state
-              entity_id: !input smartmeter_input_sensor
-          timeout: '00:00:05'
-
-      until:
-        - condition: numeric_state
-          entity_id: !input smartmeter_input_sensor
-          above: !input num_lower_power_acceptance
-          below: !input num_upper_power_acceptance
+  # Set limit
+  - service: number.set_value
+    target:
+      entity_id:
+        - !input output_limit_number
+    metadata: {}
+    data:
+      value: "{{ limit }}"
 
 mode: single
 max_exceeded: silent
