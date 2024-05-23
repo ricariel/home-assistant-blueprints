@@ -261,8 +261,8 @@ trigger:
 condition:
   - condition: numeric_state
     entity_id: !input smartmeter_input_sensor
-    above: !input num_lower_power_acceptance
-    below: !input num_upper_power_acceptance
+    above: !input num_upper_power_acceptance
+    below: !input num_lower_power_acceptance
 
 action:
   - variables:
