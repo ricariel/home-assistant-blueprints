@@ -342,12 +342,17 @@ action:
           states(num_inverter_limit)|int if states(battery_level_sensor)|int >= states(max_discharge_level_sensor)|int else 0
         }}
 
+      # get target power
+      target_power: |-
+        {{
+          ((num_lower_power_acceptance|int+num_upper_power_acceptance|int)/2)
+        }}
+
       # get demand and shrink to local instance
       requested_power: |-
         {{
           (states(output_home_power)|int+
-          (states(smartmeter_input_sensor)|int-
-            ((num_lower_power_acceptance|int+num_upper_power_acceptance|int)/2))|int/100*num_percentage)|int
+          ((states(smartmeter_input_sensor)|int-target_power|int)|int/100*num_percentage))|int
         }}
 
       # calculate limit
