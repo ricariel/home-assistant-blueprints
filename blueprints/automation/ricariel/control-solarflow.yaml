@@ -345,9 +345,9 @@ action:
       # get demand and shrink to local instance
       requested_power: |-
         {{
-          states(output_home_power)|int+
+          (states(output_home_power)|int+
           (states(smartmeter_input_sensor)|int-
-            ((num_lower_power_acceptance|int+num_upper_power_acceptance|int)/2))|int/100*num_percentage
+            ((num_lower_power_acceptance|int+num_upper_power_acceptance|int)/2))|int/100*num_percentage)|int
         }}
 
       # calculate limit
