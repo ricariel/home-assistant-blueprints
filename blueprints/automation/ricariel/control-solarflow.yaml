@@ -267,17 +267,17 @@ action:
   - variables:
       # is battery full?
       bat_full: |-
-        {{ ((states(battery_level_sensor)|int >= num_bat_full|int)) }}
+        {{ ((states(battery_level_sensor)|int(0) >= num_bat_full|int(0))) }}
       # is battery empty?
       bat_empty: |-
-        {{ ((states(battery_level_sensor)|int <= num_bat_empty|int)) }}
+        {{ ((states(battery_level_sensor)|int(0) <= num_bat_empty|int(0))) }}
 
   # Battery full and previously set to stop discharge
   - if:
       - condition: template
         value_template: |-
           {{
-            (bat_full) and states(max_discharge_level_sensor)|int >= num_bat_full|int
+            (bat_full) and states(max_discharge_level_sensor)|int(0) >= num_bat_full|int(0)
           }}
     then:
       - service: number.set_value
@@ -309,9 +309,9 @@ action:
       # When battery is full, set min_limit to 90% of alternative_power_sensor
       min_limit_bat_full: |-
         {% if bat_full  %}
-          {{ (states(alternative_power_sensor)|int(0)/100*90)|int }}
+          {{ (states(alternative_power_sensor)|int(0)/100*90)|int(0) }}
         {% else %}
-          {{ 0|int }}
+          {{ 0|int(0) }}
         {% endif %}
 
       # When it is dark outside (night) set a minimum limit to prevent inverter stop
@@ -323,7 +323,7 @@ action:
       # boost function if demand is higher than 30% of maximum
       min_limit_boost: |-
         {{
-          states(num_inverter_limit)|int if states(num_inverter_limit)|int/0.3 < states(smartmeter_input_sensor)|int else 0
+          states(num_inverter_limit)|int(0) if states(num_inverter_limit)|int(0)/0.3 < states(smartmeter_input_sensor)|int(0) else 0
         }}
 
       # calculate min_limit
@@ -333,26 +333,26 @@ action:
             min_limit_bat_full*num_panels,
             min_limit_darkness*num_panels,
             min_limit_boost
-          ])|int
+          ])|int(0)
         }}
 
       # calculate max_limit
       max_limit: |-
         {{
-          states(num_inverter_limit)|int if states(battery_level_sensor)|int >= states(max_discharge_level_sensor)|int else 0
+          states(num_inverter_limit)|int(0) if states(battery_level_sensor)|int(0) >= states(max_discharge_level_sensor)|int(0) else 0
         }}
 
       # get target power
       target_power: |-
         {{
-          ((num_lower_power_acceptance|int+num_upper_power_acceptance|int)/2)
+          ((num_lower_power_acceptance|int(0)+num_upper_power_acceptance|int(0))/2)
         }}
 
       # get demand and shrink to local instance
       requested_power: |-
         {{
-          (states(output_home_power)|int+
-          ((states(smartmeter_input_sensor)|int-target_power|int)|int/100*num_percentage))|int
+          (states(output_home_power)|int(0)+
+          ((states(smartmeter_input_sensor)|int(0)-target_power|int(0))|int(0)/100*num_percentage))|int(0)
         }}
 
       # calculate limit
@@ -372,7 +372,7 @@ action:
       - condition: template
         value_template: |-
           {{
-            limit|int == states(output_limit_sensor)|int
+            limit|int(0) == states(output_limit_sensor)|int(0)
           }}
     then:
       - stop: "Stoppping loop. Nothing to set"
