@@ -267,7 +267,7 @@ action:
   - variables:
       # is battery full?
       bat_full: |-
-        {{ ((states(battery_level_sensor)|int(0) >= num_bat_full|int(0)-3)) }}
+        {{ ((states(battery_level_sensor)|int(0) >= num_bat_full|int(0))) }}
       # is battery empty?
       bat_empty: |-
         {{ ((states(battery_level_sensor)|int(0) <= num_bat_empty|int(0))) }}
