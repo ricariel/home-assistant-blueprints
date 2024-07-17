@@ -160,6 +160,20 @@ blueprint:
           unit_of_measurement: "%"
           mode: slider
 
+    num_bypass:
+      name: Prozentualer Anteil im emulierten Bypass
+      description: Wieviel soll dieser Hub zur Stromlieferung an das Haus
+        beitragen, wenn der Akku voll ist. Dies ist ein emulierter Bypass
+        und abhängig von der externen Panelleistung.
+      default: 90
+      selector:
+        number:
+          min: 0
+          max: 100
+          unit_of_measurement: "%"
+          mode: slider
+
+
     num_upper_power_acceptance:
       name: Oberes akzeptables Limit unter dem Wir nicht regeln
       description: Die Steuerung versucht die Einspeisung zwischen zwei
@@ -245,6 +259,7 @@ variables:
   output_home_power: !input output_home_power
   smartmeter_input_sensor: !input smartmeter_input_sensor
   num_percentage: !input num_percentage
+  num_bypass: !input num_bypass
   num_lower_power_acceptance: !input num_lower_power_acceptance
   num_upper_power_acceptance: !input num_upper_power_acceptance
   num_panels: !input num_panels
@@ -309,7 +324,7 @@ action:
       # When battery is full, set min_limit to 90% of alternative_power_sensor
       min_limit_bat_full: |-
         {% if bat_full  %}
-          {{ (states(alternative_power_sensor)|int(0)/100*80)|int(0) }}
+          {{ (states(alternative_power_sensor)|int(0)/100*num_bypass)|int(0) }}
         {% else %}
           {{ 0|int(0) }}
         {% endif %}
@@ -351,7 +366,7 @@ action:
       # get demand and shrink to local instance
       requested_power: |-
         {{
-          (states(output_home_power)|int(0)+
+          ((states(output_home_power))|float(0)*1.05|int(0)+
           ((states(smartmeter_input_sensor)|int(0)-target_power|int(0))|int(0)/100*num_percentage))|int(0)
         }}
 
@@ -389,4 +404,4 @@ action:
 mode: single
 max_exceeded: silent
 trace:
-  stored_traces: 100
+  stored_traces: 30
