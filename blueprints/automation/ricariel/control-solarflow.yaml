@@ -309,7 +309,7 @@ action:
       # When battery is full, set min_limit to 90% of alternative_power_sensor
       min_limit_bat_full: |-
         {% if bat_full  %}
-          {{ (states(alternative_power_sensor)|int(0)/100*90)|int(0) }}
+          {{ (states(alternative_power_sensor)|int(0)/100*80)|int(0) }}
         {% else %}
           {{ 0|int(0) }}
         {% endif %}
