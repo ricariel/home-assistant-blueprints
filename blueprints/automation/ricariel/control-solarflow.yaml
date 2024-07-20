@@ -178,6 +178,11 @@ blueprint:
       description: Manche Wechselrichter benötigen eine minimale Leistung
         um gut zu funktionieren.
       default: 0
+      selector:
+        number:
+          min: 0
+          mode: box
+
 
     num_upper_power_acceptance:
       name: Oberes akzeptables Limit unter dem Wir nicht regeln
