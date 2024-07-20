@@ -357,7 +357,7 @@ action:
         {{ max(
           [
             min_limit_bat_full*num_panels,
-            min_limit_darkness*num_panels,
+            min_limit_darkness,
             min_limit_boost
           ])|int(0)
         }}
