@@ -343,7 +343,7 @@ action:
       # When it is dark outside (night) set a minimum limit to prevent inverter stop
       min_limit_darkness: |-
         {{
-          num_min_limit|int(0) if states(alternative_power_sensor)|int(0) < 50 else 0
+          num_min_limit|int(0) if states(alternative_power_sensor)|int(0) < num_min_limit|int(0)/2 else 0
         }}
 
       # boost function if demand is higher than 30% of maximum
