@@ -173,6 +173,11 @@ blueprint:
           unit_of_measurement: "%"
           mode: slider
 
+    num_min_limit:
+      name: Minimales Limit beim Regeln
+      description: Manche Wechselrichter benötigen eine minimale Leistung
+        um gut zu funktionieren.
+      default: 0
 
     num_upper_power_acceptance:
       name: Oberes akzeptables Limit unter dem Wir nicht regeln
@@ -260,6 +265,7 @@ variables:
   smartmeter_input_sensor: !input smartmeter_input_sensor
   num_percentage: !input num_percentage
   num_bypass: !input num_bypass
+  num_min_limit: !input num_min_limit
   num_lower_power_acceptance: !input num_lower_power_acceptance
   num_upper_power_acceptance: !input num_upper_power_acceptance
   num_panels: !input num_panels
@@ -347,7 +353,8 @@ action:
           [
             min_limit_bat_full*num_panels,
             min_limit_darkness*num_panels,
-            min_limit_boost
+            min_limit_boost,
+            num_min_limit
           ])|int(0)
         }}
 
