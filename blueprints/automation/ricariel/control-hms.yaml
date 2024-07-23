@@ -1,0 +1,366 @@
+---
+blueprint:
+  name: Hoymiles HMS Controler
+  description: >-
+    # Hoymiles HMS Controler
+
+    Diese Automation kontrolliert das Einspeiseverhalten eines HMS Wechselrichters.
+    Als Bedingung müssen HMS Sensoren in Home Assistant angelegt werden zum Beispiel
+    über MQTT. Ausserdem müssen Schalter erstellt werden um diverse Werte zu steuern.
+
+    ## Beispielhaft ein paar Ideen, wie man an die Daten im Homeassistant bekommen kann
+
+    [OpenDTU](https://github.com/tbnobody/OpenDTU) als Start und sehr guter MQTT
+    Unterstützung.
+
+    [OpenDTU on Battery](https://github.com/helgeerbe/OpenDTU-OnBattery) auch wenn man
+    dann diese Steuerung nicht benötigt.
+
+    ## Das Original dieses Blueprint liegt unter
+    [https://git.zyria.de/pyrox/home-assistant-blueprints.git](https://git.zyria.de/pyrox/home-assistant-blueprints.git)
+
+  source_url: https://github.com/ricariel/home-assistant-blueprints/blob/main/blueprints/automation/ricariel/control-hms.yaml
+  domain: automation
+  author: Fabrice Kirchner
+  input:
+    battery_level_sensor:
+      name: Batterieladestand Sensor
+      description: Ein Sensor, welchen den aktuellen Batterieladestand
+        wiedergibt. Bei mir electricLevel
+      selector:
+        entity:
+          domain:
+          - sensor
+          multiple: false
+          filter:
+            domain: sensor
+            device_class: battery
+
+    output_limit_sensor:
+      name: Einspeiselimit Sensor
+      description: Das aktuelle Einspeiselimit des Hub. Bei mir outputLimit
+      selector:
+        entity:
+          domain:
+          - sensor
+          multiple: false
+          filter:
+            domain: sensor
+            device_class: power
+
+    output_limit_number:
+      name: Einspeiselimit Schalter
+      description: Eine Number zum Einstellen des Einspeiselimit. Bei mir
+        outputLimit
+      selector:
+        entity:
+          domain:
+          - number
+          multiple: false
+          filter:
+            domain: number
+            device_class: power
+
+    output_home_power:
+      name: Aktuelle Einspeisung Sensor
+      description: Was der Hub aktuell ins Haus abgibt. Dies inkludiert auch
+        Solarleistung. Bei mir outputHomePower
+      selector:
+        entity:
+          domain:
+          - sensor
+          multiple: false
+          filter:
+            domain: sensor
+            device_class: power
+
+    smartmeter_input_sensor:
+      name: Smartmeter Power Sensor
+      description: Aktueller Verbrauch (Wirkleistung) in Watt
+      selector:
+        entity:
+          domain:
+          - sensor
+          multiple: false
+          filter:
+            domain: sensor
+            device_class: power
+
+    alternative_power_sensor:
+      name: Alternativer Power Sensor
+      description: Dieser Sensor sollte in etwa den Wert eines nicht
+        gedrosselten Solarpanel in Watt ausgeben. Dies wird benutzt für eine
+        alternative Bypass Implementierung für den Hub. Bei mir ist es ein
+        Panel, was nicht am Solarflow hängt
+      selector:
+        entity:
+          domain:
+          - sensor
+          multiple: false
+          filter:
+            domain: sensor
+            device_class: power
+
+    num_panels:
+      name: Anzahl der Panels am Hub
+      description: Hier gibst du die Anzahl der installierten Panels am Hub
+        an. Bei einem konform installierten Solarflow Hub 1200 sollten das
+        zum Beispiel zwei sein.
+      default: 1
+      selector:
+        number:
+          mode: box
+
+    num_bat_full:
+      name: Wann ist die Batterie als voll anzusehen
+      description: Ein Wert zwischen 0 und 100 wann die Batterie als voll gilt.
+      default: 100
+      selector:
+        number:
+          min: 0
+          max: 100
+          mode: slider
+
+    num_bat_empty:
+      name: Wann ist die Batterie als leer anzusehen
+      description: Dieser Wert darf zwischen 0 und 100 liegen.
+      default: 10
+      selector:
+        number:
+          min: 0
+          max: 100
+          mode: slider
+
+    num_percentage:
+      name: Prozentualer Anteil an der Stromlieferung
+      description: Wieviel soll dieser Hub zur Stromlieferung an das Haus
+        beitragen? Beispiel Zwei Solarflow Hub1200. Einer mit einem Akku
+        einer mit drei. Der mit einem Akku sollte 25% beitragen und der mit
+        drei Akkus darf 75% beitragen. Hast du nur einen Hub, gibst du 100%
+        an. Die Regelung Wird immer auf den Eingestellten Wert hin arbeiten
+        unabhängig von dieser Einstellung. Nur ein Schwingen der
+        Einspeiseleistung wird hiermit gedämpft.
+      default: 100
+      selector:
+        number:
+          min: 0
+          max: 100
+          unit_of_measurement: "%"
+          mode: slider
+
+    num_bypass:
+      name: Prozentualer Anteil im emulierten Bypass
+      description: Wieviel soll dieser Hub zur Stromlieferung an das Haus
+        beitragen, wenn der Akku voll ist. Dies ist ein emulierter Bypass
+        und abhängig von der externen Panelleistung.
+      default: 90
+      selector:
+        number:
+          min: 0
+          max: 100
+          unit_of_measurement: "%"
+          mode: slider
+
+    num_min_limit:
+      name: Minimales Limit beim Regeln
+      description: Manche Wechselrichter benötigen eine minimale Leistung
+        um gut zu funktionieren.
+      default: 50
+      selector:
+        number:
+          min: 0
+          mode: box
+
+
+    num_upper_power_acceptance:
+      name: Oberes akzeptables Limit unter dem Wir nicht regeln
+      description: Die Steuerung versucht die Einspeisung zwischen zwei
+        Punkten zu halten, wenn nicht genügend Solarenergie kommt. Dies ist
+        der obere davon.
+      default: 10
+      selector:
+        number:
+          min: -100
+          max: 100
+          unit_of_measurement: "W"
+          mode: slider
+
+    num_lower_power_acceptance:
+      name: Unteres akzeptables Limit unter dem Wir nicht regeln
+      description: Die Steuerung versucht die Einspeisung zwischen zwei
+        Punkten zu halten, wenn nicht genügend Solarenergie kommt. Dies ist
+        der untere davon.
+      default: '-10'
+      selector:
+        number:
+          min: -100
+          max: 100
+          unit_of_measurement: "W"
+          mode: slider
+
+
+    num_inverter_limit:
+      name: Sensor für das maximale Limit des Wechselrichter
+      description: Hier ist der Sensor für das maximale Limit des Hubs
+        anzugeben, wieviel eingespeist werden darf. Hast du zum Beispiel
+        einen Wechselrichter mit Limit 300Watt je MPTT aber den Hub an zwei
+        MPTT angeschlossen, kannst du hier 600 angeben. Diese Einstellung
+        wird normal über die Zendure App bei der Einrichtung gesetzt. Bei
+        mir inverseMaxPower
+      selector:
+        entity:
+          domain:
+          - sensor
+          multiple: false
+          filter:
+            domain: sensor
+
+    charge_limit_sensor:
+      name: Akku Ladegrenze Sensor
+      description: Wie weit darf der Akku geladen werden. Wird meist in der
+        Zendure App festgelegt. Bei mir socSet
+      selector:
+        entity:
+          domain:
+          - sensor
+          multiple: false
+          filter:
+            domain: sensor
+
+    max_discharge_level_sensor:
+      name: Akku Entladegrenze Sensor
+      description: Wie weit darf der Akku entladen werden. Bei mir minSoc
+      selector:
+        entity:
+          domain:
+          - sensor
+          multiple: false
+          filter:
+            domain: sensor
+
+    max_discharge_level_number:
+      name: Akku Entladegrenze Number
+      description: Wie weit darf der Akku entladen werden. Wird benötigt um
+        den Akku regelmäßig voll zu bekommen.Bei mir minSoc
+      selector:
+        entity:
+          domain:
+          - number
+          multiple: false
+          filter:
+            domain: number
+
+variables:
+  battery_level_sensor: !input battery_level_sensor
+  output_limit_sensor: !input output_limit_sensor
+  output_limit_number: !input output_limit_number
+  output_home_power: !input output_home_power
+  smartmeter_input_sensor: !input smartmeter_input_sensor
+  num_percentage: !input num_percentage
+  num_bypass: !input num_bypass
+  num_min_limit: !input num_min_limit
+  num_lower_power_acceptance: !input num_lower_power_acceptance
+  num_upper_power_acceptance: !input num_upper_power_acceptance
+  num_panels: !input num_panels
+  num_bat_full: !input num_bat_full
+  num_bat_empty: !input num_bat_empty
+  num_inverter_limit: !input num_inverter_limit
+  charge_limit_sensor: !input charge_limit_sensor
+  max_discharge_level_sensor: !input max_discharge_level_sensor
+  max_discharge_level_number: !input max_discharge_level_number
+  alternative_power_sensor: !input alternative_power_sensor
+
+trigger:
+  - platform: state
+    entity_id:
+      - !input smartmeter_input_sensor
+
+condition: []
+
+action:
+  - variables:
+      # is battery full?
+      bat_full: |-
+        {{ ((states(battery_level_sensor)|int(0) >= num_bat_full|int(0))) }}
+
+  - variables:
+      # When battery is full, set min_limit to 90% of alternative_power_sensor
+      min_limit_bat_full: |-
+          {{ (states(alternative_power_sensor)|int(0)/100*num_bypass)|int(0) if bat_full else 0 }}
+
+      # When it is dark outside (night) set a minimum limit to prevent inverter stop
+      min_limit_darkness: |-
+        {{
+          num_min_limit|int(0) if states(alternative_power_sensor)|int(0) < num_min_limit|int(0)/2 else 0
+        }}
+
+      # boost function if demand is higher than 30% of maximum
+      min_limit_boost: |-
+        {{
+          states(num_inverter_limit)|int(0) if states(num_inverter_limit)|int(0)/0.3 < states(smartmeter_input_sensor)|int(0) else 0
+        }}
+
+      # calculate min_limit
+      min_limit: |-
+        {{ max(
+          [
+            min_limit_bat_full*num_panels,
+            min_limit_darkness,
+            min_limit_boost
+          ])|int(0)
+        }}
+
+      # calculate max_limit
+      max_limit: |-
+        {{
+          states(num_inverter_limit)|int(0) if states(battery_level_sensor)|int(0) >= states(max_discharge_level_sensor)|int(0) else 0
+        }}
+
+      # get target power
+      target_power: |-
+        {{
+          ((num_lower_power_acceptance|int(0)+num_upper_power_acceptance|int(0))/2)
+        }}
+
+      # get demand and shrink to local instance
+      requested_power: |-
+        {{
+          ((states(output_home_power))|float(0)*1.05|int(0)+
+          ((states(smartmeter_input_sensor)|int(0)-target_power|int(0))|int(0)/100*num_percentage))|int(0)
+        }}
+
+      # calculate limit
+      limit: |-
+        {{
+          min([
+            max([
+              requested_power,
+              min_limit
+            ]),
+            max_limit
+          ])
+        }}
+
+  # Stop if nothing to do
+  - if:
+      - condition: template
+        value_template: |-
+          {{
+            limit|int(0) == states(output_limit_sensor)|int(0)
+          }}
+    then:
+      - stop: "Stoppping loop. Nothing to set"
+
+  # Set limit
+  - service: number.set_value
+    target:
+      entity_id:
+        - !input output_limit_number
+    metadata: {}
+    data:
+      value: "{{ limit }}"
+
+mode: single
+max_exceeded: silent
+trace:
+  stored_traces: 30
