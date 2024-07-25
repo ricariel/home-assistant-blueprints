@@ -130,7 +130,6 @@ blueprint:
           unit_of_measurement: "W"
           mode: slider
 
-
     num_inverter_limit:
       name: Sensor für das maximale Limit des Wechselrichter
       description: Hier ist der Sensor für das maximale Limit des Hubs
@@ -139,11 +138,11 @@ blueprint:
         MPTT angeschlossen, kannst du hier 600 angeben. Diese Einstellung
         wird normal über die Zendure App bei der Einrichtung gesetzt. Bei
         mir inverseMaxPower
+      default: 800
       selector:
         number:
           min: 0
           max: 2000
-          default: 800
           mode: slider
 
 variables:
