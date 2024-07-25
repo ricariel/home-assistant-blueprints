@@ -173,7 +173,7 @@ action:
       # boost function if demand is higher than 30% of maximum
       min_limit_boost: |-
         {{
-          states(num_inverter_limit)|int(0) if states(num_inverter_limit)|int(0)/0.3 < states(smartmeter_input_sensor)|int(0) else 0
+          num_inverter_limit|int(0) if num_inverter_limit|int(0)/0.3 < states(smartmeter_input_sensor)|int(0) else 0
         }}
 
       # calculate min_limit
@@ -188,7 +188,7 @@ action:
       # calculate max_limit
       max_limit: |-
         {{
-          states(num_inverter_limit)|int(0)
+          num_inverter_limit|int(0)
         }}
 
       # get target power
