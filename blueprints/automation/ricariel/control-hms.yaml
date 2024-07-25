@@ -23,18 +23,6 @@ blueprint:
   domain: automation
   author: Fabrice Kirchner
   input:
-    output_limit_sensor:
-      name: Einspeiselimit Sensor
-      description: Das aktuelle Einspeiselimit des Hub. Bei mir outputLimit
-      selector:
-        entity:
-          domain:
-          - sensor
-          multiple: false
-          filter:
-            domain: sensor
-            device_class: power
-
     output_limit_number:
       name: Einspeiselimit Schalter
       description: Eine Number zum Einstellen des Einspeiselimit. Bei mir
@@ -152,50 +140,13 @@ blueprint:
         wird normal über die Zendure App bei der Einrichtung gesetzt. Bei
         mir inverseMaxPower
       selector:
-        entity:
-          domain:
-          - sensor
-          multiple: false
-          filter:
-            domain: sensor
-
-    charge_limit_sensor:
-      name: Akku Ladegrenze Sensor
-      description: Wie weit darf der Akku geladen werden. Wird meist in der
-        Zendure App festgelegt. Bei mir socSet
-      selector:
-        entity:
-          domain:
-          - sensor
-          multiple: false
-          filter:
-            domain: sensor
-
-    max_discharge_level_sensor:
-      name: Akku Entladegrenze Sensor
-      description: Wie weit darf der Akku entladen werden. Bei mir minSoc
-      selector:
-        entity:
-          domain:
-          - sensor
-          multiple: false
-          filter:
-            domain: sensor
-
-    max_discharge_level_number:
-      name: Akku Entladegrenze Number
-      description: Wie weit darf der Akku entladen werden. Wird benötigt um
-        den Akku regelmäßig voll zu bekommen.Bei mir minSoc
-      selector:
-        entity:
-          domain:
-          - number
-          multiple: false
-          filter:
-            domain: number
+        number:
+          min: 0
+          max: 2000
+          default: 800
+          mode: slider
 
 variables:
-  output_limit_sensor: !input output_limit_sensor
   output_home_power: !input output_home_power
   smartmeter_input_sensor: !input smartmeter_input_sensor
   num_percentage: !input num_percentage
@@ -203,9 +154,6 @@ variables:
   num_lower_power_acceptance: !input num_lower_power_acceptance
   num_upper_power_acceptance: !input num_upper_power_acceptance
   num_inverter_limit: !input num_inverter_limit
-  charge_limit_sensor: !input charge_limit_sensor
-  max_discharge_level_sensor: !input max_discharge_level_sensor
-  max_discharge_level_number: !input max_discharge_level_number
   alternative_power_sensor: !input alternative_power_sensor
 
 trigger:
@@ -274,7 +222,7 @@ action:
       - condition: template
         value_template: |-
           {{
-            limit|int(0) == states(output_limit_sensor)|int(0)
+            limit|int(0) == states(output_home_power)|int(0)
           }}
     then:
       - stop: "Stoppping loop. Nothing to set"
