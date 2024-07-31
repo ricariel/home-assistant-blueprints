@@ -160,7 +160,10 @@ trigger:
     entity_id:
       - !input smartmeter_input_sensor
 
-condition: []
+condition:
+  - condition: template
+      # Only run if more than 6 hours (21,600 sec) since it last ran
+    value_template: '{{(as_timestamp(now()) - as_timestamp(state_attr(this, "last_triggered") | default(0)) | int > 5 )}}'
 
 action:
   - variables:
