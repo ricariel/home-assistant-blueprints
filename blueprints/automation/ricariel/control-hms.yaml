@@ -93,6 +93,20 @@ blueprint:
           unit_of_measurement: "%"
           mode: slider
 
+    percentage_inputs_allocated:
+      name: Prozentualer Anteil der belegten Slots am Wechselrichter
+      description: Wieviele Anschlüsse des Wechselrichters sind belegt? Dies hat
+        Auswirkungen auf die eingestellte Leistungsabgabe. Wenn z.B. der
+        Wechselrichter zwei Eingänge hat und 100W gefordert werden, aber nur
+        ein Eingang belegt ist, muss das Limit auf 200W gesetzt werden.
+      default: 100
+      selector:
+        number:
+          min: 0
+          max: 100
+          unit_of_measurement: "%"
+          mode: slider
+
     num_min_limit:
       name: Minimales Limit beim Regeln
       description: Manche Wechselrichter benötigen eine minimale Leistung
@@ -147,8 +161,10 @@ blueprint:
 
 variables:
   output_home_power: !input output_home_power
+  output_limit_number: !input output_limit_number
   smartmeter_input_sensor: !input smartmeter_input_sensor
   num_percentage: !input num_percentage
+  percentage_inputs_allocated: !input percentage_inputs_allocated
   num_min_limit: !input num_min_limit
   num_lower_power_acceptance: !input num_lower_power_acceptance
   num_upper_power_acceptance: !input num_upper_power_acceptance
@@ -162,17 +178,10 @@ trigger:
 
 condition:
   - condition: template
-      # Only run if more than 6 hours (21,600 sec) since it last ran
-    value_template: '{{ now() - state_attr(this, 'last_triggered') | default(as_datetime(0), true) < timedelta(seconds=1) }}'
+    value_template: '{{ now() - state_attr(this.entity_id, "last_triggered") | default(as_datetime(0), true) > timedelta(seconds=5) }}'
 
 action:
   - variables:
-      # When it is dark outside (night) set a minimum limit to prevent inverter stop
-      min_limit_darkness: |-
-        {{
-          num_min_limit|int(0) if states(alternative_power_sensor)|int(0) < num_min_limit|int(0)/2 else 0
-        }}
-
       # boost function if demand is higher than 30% of maximum
       min_limit_boost: |-
         {{
@@ -183,7 +192,7 @@ action:
       min_limit: |-
         {{ max(
           [
-            min_limit_darkness,
+            num_min_limit,
             min_limit_boost
           ])|int(0)
         }}
@@ -204,7 +213,8 @@ action:
       requested_power: |-
         {{
           ((states(output_home_power))|float(0)*1.05|int(0)+
-          ((states(smartmeter_input_sensor)|int(0)-target_power|int(0))|int(0)/100*num_percentage))|int(0)
+          ((states(smartmeter_input_sensor)|int(0)-target_power|int(0))|int(0)/100*num_percentage))|int(0)*
+          100/percentage_inputs_allocated
         }}
 
       # calculate limit
@@ -224,7 +234,7 @@ action:
       - condition: template
         value_template: |-
           {{
-            limit|int(0) == states(output_home_power)|int(0)
+            limit|int(0) == states(output_limit_number)|int(0)
           }}
     then:
       - stop: "Stoppping loop. Nothing to set"
