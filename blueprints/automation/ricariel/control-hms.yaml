@@ -163,7 +163,7 @@ trigger:
 condition:
   - condition: template
       # Only run if more than 6 hours (21,600 sec) since it last ran
-    value_template: '{{(as_timestamp(now()) - as_timestamp(this.attributes.last_triggered) | default(0)) | int > 5 )}}'
+    value_template: '{{ now() - state_attr(this, 'last_triggered') | default(as_datetime(0), true) < timedelta(seconds=1) }}'
 
 action:
   - variables:
