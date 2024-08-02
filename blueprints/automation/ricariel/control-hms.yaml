@@ -208,23 +208,23 @@ action:
         {{
           ((num_lower_power_acceptance|int(0)+num_upper_power_acceptance|int(0))/2)
         }}
-      efficiency: "{{
-        (
-          (100-states('sensor.solarflow_efficiency')|int(0)
-        )/100)+1
-      }}"
 
       # get demand and shrink to local instance
-      requested_power: "{{
-        (
+      requested_power: |-
+        {{
           (
-            states(output_home_power)|float(0)|int(0)+
-            states(smartmeter_input_sensor)|int(0)-
-            target_power|int(0)
-          )*
-          (100/percentage_inputs_allocated)/
-          100*num_percentage|int(0)
-        )|int(0)
+            (
+              states(output_home_power)|float(0)|int(0)+
+              states(smartmeter_input_sensor)|int(0)-
+              target_power|int(0)
+            )*
+            (100/percentage_inputs_allocated)/
+            100*num_percentage|int(0)
+          )|int(0)
+        }}
+
+      min_inverter_limit: "{{
+        num_inverter_limit|int(0) if num_inverter_limit|int(0)*0.17 < requested_power|int(0) else 0
       }}"
 
       # calculate limit
@@ -232,6 +232,7 @@ action:
         {{
           min([
             max([
+              min_inverter_limit,
               requested_power,
               min_limit
             ]),
