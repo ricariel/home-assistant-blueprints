@@ -178,7 +178,7 @@ trigger:
 
 condition:
   - condition: template
-    value_template: '{{ now() - state_attr(this.entity_id, "last_triggered") | default(as_datetime(0), true) > timedelta(seconds=5) }}'
+    value_template: '{{ now() - state_attr(this.entity_id, "last_triggered") | default(as_datetime(0), true) > timedelta(seconds=10) }}'
 
 action:
   - variables:
@@ -222,7 +222,6 @@ action:
             states(smartmeter_input_sensor)|int(0)-
             target_power|int(0)
           )*
-          efficiency*
           (100/percentage_inputs_allocated)/
           100*num_percentage|int(0)
         )|int(0)
