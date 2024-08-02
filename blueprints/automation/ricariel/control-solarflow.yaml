@@ -287,7 +287,9 @@ trigger:
     entity_id:
       - !input smartmeter_input_sensor
 
-condition: []
+condition:
+  - condition: template
+    value_template: '{{ now() - state_attr(this.entity_id, "last_triggered") | default(as_datetime(0), true) > timedelta(seconds=4) }}'
 
 action:
   - variables:
