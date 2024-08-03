@@ -76,6 +76,16 @@ blueprint:
             domain: sensor
             device_class: power
 
+    num_request_limit:
+      name: Anfragelimit in Sekunden
+      description: Wie oft soll die Automation mindestens warten bis erneut
+        geregelt wird.
+      default: 10
+      selector:
+        number:
+          min: 1
+          mode: auto
+
     num_percentage:
       name: Prozentualer Anteil an der Stromlieferung
       description: Wieviel soll dieser Hub zur Stromlieferung an das Haus
@@ -160,6 +170,7 @@ blueprint:
           mode: slider
 
 variables:
+  num_request_limit: !input num_request_limit
   output_home_power: !input output_home_power
   output_limit_number: !input output_limit_number
   smartmeter_input_sensor: !input smartmeter_input_sensor
@@ -178,7 +189,7 @@ trigger:
 
 condition:
   - condition: template
-    value_template: '{{ now() - state_attr(this.entity_id, "last_triggered") | default(as_datetime(0), true) > timedelta(seconds=10) }}'
+    value_template: '{{ now() - state_attr(this.entity_id, "last_triggered") | default(as_datetime(0), true) > timedelta(seconds=num_request_limit) }}'
 
 action:
   - variables:
