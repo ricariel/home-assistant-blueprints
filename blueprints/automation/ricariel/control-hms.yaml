@@ -86,37 +86,6 @@ blueprint:
           min: 1
           mode: box
 
-    num_percentage:
-      name: Prozentualer Anteil an der Stromlieferung
-      description: Wieviel soll dieser Hub zur Stromlieferung an das Haus
-        beitragen? Beispiel Zwei Solarflow Hub1200. Einer mit einem Akku
-        einer mit drei. Der mit einem Akku sollte 25% beitragen und der mit
-        drei Akkus darf 75% beitragen. Hast du nur einen Hub, gibst du 100%
-        an. Die Regelung Wird immer auf den Eingestellten Wert hin arbeiten
-        unabhängig von dieser Einstellung. Nur ein Schwingen der
-        Einspeiseleistung wird hiermit gedämpft.
-      default: 100
-      selector:
-        number:
-          min: 0
-          max: 100
-          unit_of_measurement: "%"
-          mode: slider
-
-    percentage_inputs_allocated:
-      name: Prozentualer Anteil der belegten Slots am Wechselrichter
-      description: Wieviele Anschlüsse des Wechselrichters sind belegt? Dies hat
-        Auswirkungen auf die eingestellte Leistungsabgabe. Wenn z.B. der
-        Wechselrichter zwei Eingänge hat und 100W gefordert werden, aber nur
-        ein Eingang belegt ist, muss das Limit auf 200W gesetzt werden.
-      default: 100
-      selector:
-        number:
-          min: 0
-          max: 100
-          unit_of_measurement: "%"
-          mode: slider
-
     num_min_limit:
       name: Minimales Limit beim Regeln
       description: Manche Wechselrichter benötigen eine minimale Leistung
@@ -174,8 +143,6 @@ variables:
   output_home_power: !input output_home_power
   output_limit_number: !input output_limit_number
   smartmeter_input_sensor: !input smartmeter_input_sensor
-  num_percentage: !input num_percentage
-  percentage_inputs_allocated: !input percentage_inputs_allocated
   num_min_limit: !input num_min_limit
   num_lower_power_acceptance: !input num_lower_power_acceptance
   num_upper_power_acceptance: !input num_upper_power_acceptance
@@ -224,13 +191,9 @@ action:
       requested_power: |-
         {{
           (
-            (
               states(output_home_power)|float(0)|int(0)+
               states(smartmeter_input_sensor)|int(0)-
               target_power|int(0)
-            )*
-            (100/percentage_inputs_allocated)/
-            100*num_percentage|int(0)
           )|int(0)
         }}
 
