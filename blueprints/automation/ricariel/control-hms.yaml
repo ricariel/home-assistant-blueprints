@@ -32,7 +32,7 @@ blueprint:
         entity:
           domain:
           - sensor
-          multiple: true
+          multiple: false
           filter:
             domain: sensor
             device_class: battery
@@ -152,7 +152,32 @@ blueprint:
           max: 2000
           mode: slider
 
+    num_bat_full:
+      name: Wann ist die Batterie als voll anzusehen
+      description: Ein Wert zwischen 0 und 100 wann die Batterie als voll gilt.
+      default: 100
+      selector:
+        number:
+          min: 0
+          max: 100
+          mode: slider
+
+    num_bypass:
+      name: Prozentualer Anteil im emulierten Bypass
+      description: Wieviel soll dieser Hub zur Stromlieferung an das Haus
+        beitragen, wenn der Akku voll ist. Dies ist ein emulierter Bypass
+        und abhängig von der externen Panelleistung.
+      default: 90
+      selector:
+        number:
+          min: 0
+          max: 100
+          unit_of_measurement: "%"
+          mode: slider
+
+
 variables:
+  battery_level_sensor: !input battery_level_sensor
   num_request_limit: !input num_request_limit
   output_home_power: !input output_home_power
   output_limit_number: !input output_limit_number
@@ -162,6 +187,8 @@ variables:
   num_upper_power_acceptance: !input num_upper_power_acceptance
   num_inverter_limit: !input num_inverter_limit
   alternative_power_sensor: !input alternative_power_sensor
+  num_bat_full: !input num_bat_full
+  num_bypass: !input num_bypass
 
 trigger:
   - platform: state
@@ -174,17 +201,30 @@ condition:
 
 action:
   - variables:
+      # is battery full?
+      bat_full: |-
+        {{ ((states(battery_level_sensor)|int(0) >= num_bat_full|int(0))) }}
+
+
       # boost function if demand is higher than 30% of maximum
       min_limit_boost: |-
         {{
           num_inverter_limit|int(0) if num_inverter_limit|int(0)/0.3 < states(smartmeter_input_sensor)|int(0) else 0
         }}
+      min_limit_bat_full: |-
+        {% if bat_full  %}
+          {{ (states(alternative_power_sensor)|int(0)/100*num_bypass)|int(0) }}
+        {% else %}
+          {{ 0|int(0) }}
+        {% endif %}
+
 
       # calculate min_limit
       min_limit: |-
         {{ max(
           [
             num_min_limit,
+            min_limit_bat_full,
             min_limit_boost
           ])|int(0)
         }}
