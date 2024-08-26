@@ -228,15 +228,10 @@ action:
           (states(alternative_power_sensor)|int(0)/100*num_bypass)|int(0) if bat_full else 0|int(0)
         }}
 
-      max_regulation_limit: |-
-        {{
-          (-500-states(smartmeter_input_sensor)|int(0))*-1
-        }}
-
       # calculate min_limit
       min_limit: |-
-        {{ max(
-          [
+        {{
+          max([
             num_min_limit,
             min_limit_bat_full*num_panels,
             min_limit_boost
@@ -246,7 +241,10 @@ action:
       # calculate max_limit
       max_limit: |-
         {{
-          num_inverter_limit|int(0)
+          min([
+            (num_inverter_limit|int(0)+500+states(smartmeter_input_sensor)|int(0)),
+            num_inverter_limit|int(0)
+            ])
         }}
 
       # get target power
@@ -279,7 +277,6 @@ action:
               requested_power,
               min_limit
             ]),
-            max_regulation_limit,
             max_limit
           ])
         }}
