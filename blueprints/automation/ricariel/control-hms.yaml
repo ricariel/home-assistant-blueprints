@@ -175,6 +175,16 @@ blueprint:
           unit_of_measurement: "%"
           mode: slider
 
+    num_panels:
+      name: Anzahl der Anschlüsse am Wechselrichter
+      description: Hier gibst du die Anzahl der blegten Anschlüsse am
+        Wechselrichter an.
+      default: 1
+      selector:
+        number:
+          mode: box
+
+
 
 variables:
   battery_level_sensor: !input battery_level_sensor
@@ -189,6 +199,7 @@ variables:
   alternative_power_sensor: !input alternative_power_sensor
   num_bat_full: !input num_bat_full
   num_bypass: !input num_bypass
+  num_panels: !input num_panels
 
 trigger:
   - platform: state
@@ -211,20 +222,18 @@ action:
         {{
           num_inverter_limit|int(0) if num_inverter_limit|int(0)/0.3 < states(smartmeter_input_sensor)|int(0) else 0
         }}
-      min_limit_bat_full: |-
-        {% if bat_full  %}
-          {{ (states(alternative_power_sensor)|int(0)/100*num_bypass)|int(0) }}
-        {% else %}
-          {{ 0|int(0) }}
-        {% endif %}
 
+      min_limit_bat_full: |-
+        {{
+          (states(alternative_power_sensor)|int(0)/100*num_bypass)|int(0) if bat_full else 0|int(0)
+        }}
 
       # calculate min_limit
       min_limit: |-
         {{ max(
           [
             num_min_limit,
-            min_limit_bat_full,
+            min_limit_bat_full*num_panels,
             min_limit_boost
           ])|int(0)
         }}
