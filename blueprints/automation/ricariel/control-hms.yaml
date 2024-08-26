@@ -230,7 +230,7 @@ action:
 
       max_regulation_limit: |-
         {{
-          -500-states(smartmeter_input_sensor)|int(0)
+          (-500-states(smartmeter_input_sensor)|int(0))*-1
         }}
 
       # calculate min_limit
