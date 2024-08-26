@@ -238,6 +238,10 @@ action:
           ])|int(0)
         }}
 
+      max_regulation_limit: |-
+        {{
+          600*-1
+        }}
       # calculate max_limit
       max_limit: |-
         {{
