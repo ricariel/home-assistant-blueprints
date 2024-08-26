@@ -23,6 +23,20 @@ blueprint:
   domain: automation
   author: Fabrice Kirchner
   input:
+
+    battery_level_sensor:
+      name: Batterieladestand Sensor
+      description: Ein Sensor, welchen den aktuellen Batterieladestand
+        wiedergibt. Bei mir electricLevel
+      selector:
+        entity:
+          domain:
+          - sensor
+          multiple: true
+          filter:
+            domain: sensor
+            device_class: battery
+
     output_limit_number:
       name: Einspeiselimit Schalter
       description: Eine Number zum Einstellen des Einspeiselimit. Bei mir
