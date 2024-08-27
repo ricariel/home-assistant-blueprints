@@ -249,7 +249,7 @@ action:
               )*-1
             )-states(output_home_power)|float(0)
           )/100
-          )|round(0)|int(0)
+          )|round(0)|int(0)*100
         }}
       # calculate max_limit
       max_limit: |-
