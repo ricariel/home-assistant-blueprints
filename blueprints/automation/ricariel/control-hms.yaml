@@ -238,14 +238,16 @@ action:
           ])|int(0)
         }}
 
+      max_possible_output: |-
+        {{
+          ((((-500-states(smartmeter_input_sensor)|int(0))*-1)/100)|int(0)*100)
+        }}
+
       # calculate max_limit
       max_limit: |-
         {{
           min([
-            max(
-              ((((-500-states(smartmeter_input_sensor)|int(0))*-1)/100)|int(0)*100),
-              min_inverter_limit
-            ),
+            max_possible_output if max_possible_output > num_min_limit else num_min_limit,
             num_inverter_limit|int(0)
             ])
         }}
