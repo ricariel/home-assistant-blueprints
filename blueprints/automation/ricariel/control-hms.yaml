@@ -242,7 +242,7 @@ action:
       max_limit: |-
         {{
           min([
-            (-500+states(smartmeter_input_sensor)|int(0))*-1,
+            ((-500+states(smartmeter_input_sensor)|int(0))*-1),
             num_inverter_limit|int(0)
             ])
         }}
