@@ -240,7 +240,7 @@ action:
 
       max_possible_output: |-
         {{
-          states('output_limit_number')|int+(states('smartmeter_input_sensor')|int)+500
+          states(output_limit_number)|int+(states(smartmeter_input_sensor)|int)+500
         }}
 
       # calculate max_limit
