@@ -240,7 +240,7 @@ action:
 
       max_possible_output: |-
         {{
-          ((((states(output_home_power)|float(0)|int(0)-500-states(smartmeter_input_sensor)|int(0))|abs)/10)|round(0, 'ceil')*10)
+          states('output_limit_number')|int+(states('smartmeter_input_sensor')|int)+500
         }}
 
       # calculate max_limit
