@@ -241,7 +241,15 @@ action:
       # claculate max possible output
       max_possible_output: |-
         {{
-          ((-500-states(smartmeter_input_sensor)|int(0))*-1)-states(output_home_power)|float(0)|int(0)
+          (
+          (
+            (
+              (
+                -500-states(smartmeter_input_sensor)|int(0)
+              )*-1
+            )-states(output_home_power)|float(0)
+          )/100
+          )|round(0)|int(0)
         }}
       # calculate max_limit
       max_limit: |-
