@@ -354,11 +354,16 @@ action:
           states(num_inverter_limit)|int(0) if states(num_inverter_limit)|int(0)/0.3 < states(smartmeter_input_sensor)|int(0) else 0
         }}
 
+      is_power_needed_by_us: |-
+        {{
+          num_min_limit|int(0) if states(smartmeter_input_sensor)|int(0)+num_min_limit|int(0) > 0 and not bat_full else 0
+        }}
+
       # calculate min_limit
       min_limit: |-
         {{ max(
           [
-            num_min_limit,
+            is_power_needed_by_us,
             min_limit_bat_full*num_panels,
             min_limit_darkness,
             min_limit_boost
