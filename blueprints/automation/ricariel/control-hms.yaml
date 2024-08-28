@@ -152,6 +152,16 @@ blueprint:
           max: 2000
           mode: slider
 
+    num_max_bypass_target:
+      name: Nummer für die angestrebte Einspeisung ins Netz im simulierten Bypass
+      description: Hier kann man die Leistung einstellen, welche maximal am Zähler ankommen soll.
+      default: 600
+      selector:
+        number:
+          min: 0
+          max: 1000
+          mode: slider
+
     num_bat_full:
       name: Wann ist die Batterie als voll anzusehen
       description: Ein Wert zwischen 0 und 100 wann die Batterie als voll gilt.
@@ -200,6 +210,7 @@ variables:
   num_bat_full: !input num_bat_full
   num_bypass: !input num_bypass
   num_panels: !input num_panels
+  num_max_bypass_target: !input num_max_bypass_target
 
 trigger:
   - platform: state
@@ -243,7 +254,7 @@ action:
           (
             (
               (
-                states(output_limit_number)|int+(states(smartmeter_input_sensor)|int)+500
+                states(output_limit_number)|int(0)+(states(smartmeter_input_sensor)|int(0))+num_max_bypass_target|int(0)
               )/100
             )|round(0,'ceil')|int
           )*100
