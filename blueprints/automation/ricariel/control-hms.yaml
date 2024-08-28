@@ -255,8 +255,8 @@ action:
             (
               (
                 states(output_limit_number)|int(0)+(states(smartmeter_input_sensor)|int(0))+num_max_bypass_target|int(0)
-              )/100
-            )|round(0,'ceil')|int
+              )*2/100
+            )|round(0,'ceil')|int*0.5
           )*100
         }}
 
