@@ -356,8 +356,11 @@ action:
 
       is_power_needed_by_us: |-
         {{
-          num_min_limit|int(0) if states(smartmeter_input_sensor)|int(0)+(num_min_limit*1.2)|int(0) > 0 and
-          states(smartmeter_input_sensor)|int(0)+(num_min_limit)|int(0) > 0 and not bat_full else 0
+          num_min_limit|int(0) if states(smartmeter_input_sensor)|int(0)+(num_min_limit)|int(0) > 0
+          and
+          states(smartmeter_input_sensor)|int(0)+states(output_home_power)|int(0) > 0
+          and not
+          bat_full else 0
         }}
 
       # calculate min_limit
