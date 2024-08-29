@@ -367,7 +367,6 @@ action:
       min_limit: |-
         {{ max(
           [
-            is_power_needed_by_us,
             min_limit_bat_full*num_panels,
             min_limit_darkness,
             min_limit_boost
