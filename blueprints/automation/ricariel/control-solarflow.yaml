@@ -382,7 +382,7 @@ action:
           [
             num_min_limit|int(0) if requested_power < num_min_limit|int(0)
               and requested_power > 0
-              and requested_power < num_min_limit|int(0) else 0
+              and requested_power < num_min_limit|int(0) else 0,
             is_power_needed_by_us|int(0),
             min_limit_bat_full*num_panels,
             min_limit_darkness,
