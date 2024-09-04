@@ -334,6 +334,19 @@ action:
       - stop: "Stoppping loop. Nothing to set"
 
   - variables:
+      # get target power
+      target_power: |-
+        {{
+          ((num_lower_power_acceptance|int(0)+num_upper_power_acceptance|int(0))/2)
+        }}
+
+      # get demand and shrink to local instance
+      requested_power: |-
+        {{
+          ((states(output_home_power))|float(0)*1.05|int(0)+
+          ((states(smartmeter_input_sensor)|int(0)-target_power|int(0))|int(0)/100*num_percentage))|int(0)
+        }}
+
       # When battery is full, set min_limit to 90% of alternative_power_sensor
       min_limit_bat_full: |-
         {% if bat_full  %}
@@ -367,6 +380,9 @@ action:
       min_limit: |-
         {{ max(
           [
+            num_min_limit|int(0) if requested_power < num_min_limit|int(0)
+              and requested_power > 0
+              and requested_power < num_min_limit|int(0) else 0
             is_power_needed_by_us|int(0),
             min_limit_bat_full*num_panels,
             min_limit_darkness,
@@ -378,19 +394,6 @@ action:
       max_limit: |-
         {{
           states(num_inverter_limit)|int(0) if states(battery_level_sensor)|int(0) >= states(max_discharge_level_sensor)|int(0) else 0
-        }}
-
-      # get target power
-      target_power: |-
-        {{
-          ((num_lower_power_acceptance|int(0)+num_upper_power_acceptance|int(0))/2)
-        }}
-
-      # get demand and shrink to local instance
-      requested_power: |-
-        {{
-          ((states(output_home_power))|float(0)*1.05|int(0)+
-          ((states(smartmeter_input_sensor)|int(0)-target_power|int(0))|int(0)/100*num_percentage))|int(0)
         }}
 
       # calculate limit
