@@ -343,8 +343,8 @@ action:
       # get demand and shrink to local instance
       requested_power: |-
         {{
-          ((states(output_home_power))|float(0)*1.05|int(0)+
-          ((states(smartmeter_input_sensor)|int(0)-target_power|int(0))|int(0)/100*num_percentage))|int(0)
+          (((states(output_home_power)|float(0)*1.05|int(0) ) +
+            (states(smartmeter_input_sensor)|int(0)-target_power|int(0)))|int(0)/100*num_percentage)|int(0)
         }}
 
       # When battery is full, set min_limit to 90% of alternative_power_sensor
