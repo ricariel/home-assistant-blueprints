@@ -289,6 +289,16 @@ trigger:
 
 condition:
   - condition: template
+    value_template: >-
+      {% if num_lower_power_acceptance > num_upper_power_acceptance %}
+      {% set num_lower_power_acceptance = num_lower_power_acceptance + num_upper_power_acceptance %}
+      {% set num_upper_power_acceptance = num_lower_power_acceptance - num_upper_power_acceptance %}
+      {% set num_lower_power_acceptance = num_lower_power_acceptance - num_upper_power_acceptance %}
+      {% endif %}
+
+      {{ states(smartmeter_input_sensor)|int(0) not in range(num_lower_power_acceptance,num_upper_power_acceptance) }}
+
+  - condition: template
     value_template: '{{ now() - state_attr(this.entity_id, "last_triggered") | default(as_datetime(0), true) > timedelta(seconds=4) }}'
 
 action:
