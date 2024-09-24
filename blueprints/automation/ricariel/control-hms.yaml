@@ -24,6 +24,17 @@ blueprint:
   author: Fabrice Kirchner
   input:
 
+    reachable_sensor:
+      name: Erreichbarkeits Sensor
+      description: Ist der Wechselrichter erreichbar?
+      selector:
+        entity:
+          domain:
+          - binary_sensor
+          multiple: false
+          filter:
+            domain: binary_sensor
+
     battery_level_sensor:
       name: Batterieladestand Sensor
       description: Ein Sensor, welchen den aktuellen Batterieladestand
@@ -220,6 +231,9 @@ trigger:
 condition:
   - condition: template
     value_template: '{{ now() - state_attr(this.entity_id, "last_triggered") | default(as_datetime(0), true) > timedelta(seconds=num_request_limit) }}'
+  - condition: state
+    entity_id: !input reachable_sensor
+    state: "on"
 
 action:
   - variables:
