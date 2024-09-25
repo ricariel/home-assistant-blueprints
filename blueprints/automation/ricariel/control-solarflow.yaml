@@ -298,6 +298,7 @@ condition:
 
       {{ states(smartmeter_input_sensor)|int(0) not in range(num_lower_power_acceptance,num_upper_power_acceptance) }}
 
+
   - condition: template
     value_template: '{{ now() - state_attr(this.entity_id, "last_triggered") | default(as_datetime(0), true) > timedelta(seconds=4) }}'
 
@@ -324,7 +325,7 @@ action:
             - !input max_discharge_level_number
         metadata: {}
         data:
-          value: num_bat_empty
+          value: "{{ num_bat_empty|int(0) }}"
 
   # Battery empty disable discharging until full
   - if:
@@ -340,7 +341,7 @@ action:
             - !input max_discharge_level_number
         metadata: {}
         data:
-          value: num_bat_full
+          value: "{{ num_bat_full|int(0) }}"
       - stop: "Stoppping loop. Nothing to set"
 
   - variables:
