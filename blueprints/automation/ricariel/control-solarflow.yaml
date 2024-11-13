@@ -316,7 +316,7 @@ action:
       - condition: template
         value_template: |-
           {{
-            (bat_full) and states(max_discharge_level_sensor)|int(0) >= num_bat_full|int(0)
+            (bat_full) and states(max_discharge_level_sensor)|int(0) > num_bat_empty|int(0)
           }}
     then:
       - service: number.set_value
