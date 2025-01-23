@@ -1,0 +1,309 @@
+---
+blueprint:
+  name: Zendure ACE Controler
+  description: >-
+    # Zendure ACE Controler
+
+    Diese Automation kontrolliert das Lade- und Entladeverhalten eines
+    ACE1500. Als Bedingung müssen Solarflow Sensoren in Home Assistant
+    angelegt werden zum Beispiel über MQTT. Ausserdem müssen Schalter
+    erstellt werden um diverse Werte zu steuern.
+
+    ## Beispielhaft ein paar Ideen, wie man an die Daten im Homeassistant bekommen kann
+
+    Ein gutes Repository mit einer alternativen Steuerung über den
+    Wechselrichter und Anleitungen für den Zendure MQTT
+    [https://github.com/z-master42/solarflow.git](https://github.com/z-master42/solarflow.git)
+
+    Wie man den Solarflow offline nimmt und ihn mit einem lokalen MQTT sprechen lässt
+    [https://github.com/reinhard-brandstaedter/solarflow-bt-manager.git](https://github.com/reinhard-brandstaedter/solarflow-bt-manager.git)
+
+    ## Bedingungen
+
+    - Sensor
+      - Hier werden Daten gelesen. Die Sensoren sollten häufig aktualisiert
+        werden, damit eine genaue Steuerung möglich ist
+    - Number
+      - Hier werden Daten geschrieben. Numbers sind Schalter um den Hub zu
+        steuern. Im von Zendure getrennten Zustand hört der Hub unter
+        iot/<product_id>/<device_id>/ auf Befehle im MQTT.
+
+    Das Original dieses Blueprint liegt unter
+    [https://git.zyria.de/pyrox/home-assistant-blueprints.git](https://git.zyria.de/pyrox/home-assistant-blueprints.git)
+
+  source_url: https://github.com/ricariel/home-assistant-blueprints/blob/main/blueprints/automation/ricariel/control-solarflow.yaml
+  domain: automation
+  author: Fabrice Kirchner
+  input:
+    battery_level_sensor:
+      name: Batterieladestand Sensor
+      description: Ein Sensor, welchen den aktuellen Batterieladestand
+        wiedergibt. Bei mir electricLevel
+      selector:
+        entity:
+          domain:
+          - sensor
+          multiple: false
+          filter:
+            domain: sensor
+            device_class: battery
+
+    tibber_price_sensor:
+      name: Dynamischer Preis Sensor
+      description: Ein Sensor, welcher den dynamischen Strompreis gibt.
+      selector:
+        entity:
+          domain:
+          - sensor
+          multiple: false
+          filter:
+            domain: sensor
+            unit_of_measurement: 'EUR/kWh'
+
+    input_limit_sensor:
+      name: Ladelimit Sensor
+      description: Ladelimit des ACE. Mit wieviel Watt soll geladen werden.
+      selector:
+        entity:
+          domain:
+          - sensor
+          multiple: false
+          filter:
+            domain: sensor
+            device_class: power
+
+    input_limit_number:
+      name: Einspeiselimit Schalter
+      description: Ladelimit des ACE. Mit wieviel Watt soll geladen werden.
+      selector:
+        entity:
+          domain:
+          - number
+          multiple: false
+          filter:
+            domain: number
+            device_class: power
+
+    num_bat_full:
+      name: Wann ist die Batterie als voll anzusehen
+      description: Ein Wert zwischen 0 und 100 wann die Batterie als voll gilt.
+      default: 100
+      selector:
+        number:
+          min: 0
+          max: 100
+          mode: slider
+
+    num_bat_empty:
+      name: Wann ist die Batterie als leer anzusehen
+      description: Dieser Wert darf zwischen 0 und 100 liegen.
+      default: 10
+      selector:
+        number:
+          min: 0
+          max: 100
+          mode: slider
+
+    charge_limit_sensor:
+      name: Akku Ladegrenze Sensor
+      description: Wie weit darf der Akku geladen werden. Wird meist in der
+        Zendure App festgelegt. Bei mir socSet
+      selector:
+        entity:
+          domain:
+          - sensor
+          multiple: false
+          filter:
+            domain: sensor
+
+    max_discharge_level_sensor:
+      name: Akku Entladegrenze Sensor
+      description: Wie weit darf der Akku entladen werden. Bei mir minSoc
+      selector:
+        entity:
+          domain:
+          - sensor
+          multiple: false
+          filter:
+            domain: sensor
+
+    max_discharge_level_number:
+      name: Akku Entladegrenze Number
+      description: Wie weit darf der Akku entladen werden. Wird benötigt um
+        den Akku regelmäßig voll zu bekommen.Bei mir minSoc
+      selector:
+        entity:
+          domain:
+          - number
+          multiple: false
+          filter:
+            domain: number
+
+variables:
+  battery_level_sensor: !input battery_level_sensor
+  input_limit_sensor: !input input_limit_sensor
+  input_limit_number: !input input_limit_number
+  output_home_power: !input output_home_power
+  smartmeter_input_sensor: !input smartmeter_input_sensor
+  num_percentage: !input num_percentage
+  num_bypass: !input num_bypass
+  num_min_limit: !input num_min_limit
+  num_lower_power_acceptance: !input num_lower_power_acceptance
+  num_upper_power_acceptance: !input num_upper_power_acceptance
+  num_panels: !input num_panels
+  num_bat_full: !input num_bat_full
+  num_bat_empty: !input num_bat_empty
+  num_inverter_limit: !input num_inverter_limit
+  charge_limit_sensor: !input charge_limit_sensor
+  max_discharge_level_sensor: !input max_discharge_level_sensor
+  max_discharge_level_number: !input max_discharge_level_number
+  alternative_power_sensor: !input alternative_power_sensor
+
+trigger:
+  - platform: state
+    entity_id:
+      - !input battery_level_sensor
+      - !input tibber_price_sensor
+
+action:
+  # Battery full and previously set to stop discharge
+  - if:
+      - condition: template
+        value_template: |-
+          {{
+            (chargin_price_acceptable and chargin_price_at_min and not batt_full_prediction)
+          }}
+    then:
+      - service: number.set_value
+        target:
+          entity_id:
+            - !input input_limit_number
+        metadata: {}
+        data:
+          value: "900"
+      - service: switch.turn_on
+        target:
+          entity_id:
+            - !input input_limit_number
+        metadata: {}
+        data:
+          value: "900"
+
+
+  # Battery empty disable discharging until full
+  - if:
+      - condition: template
+        value_template: |-
+          {{
+            bat_empty
+          }}
+    then:
+      - service: number.set_value
+        target:
+          entity_id:
+            - !input max_discharge_level_number
+        metadata: {}
+        data:
+          value: "{{ num_bat_full|int(0) }}"
+      - stop: "Stoppping loop. Nothing to set"
+
+  - variables:
+      # get target power
+      target_power: |-
+        {{
+          ((num_lower_power_acceptance|int(0)+num_upper_power_acceptance|int(0))/2)
+        }}
+
+      # get demand and shrink to local instance
+      requested_power: |-
+        {{
+          (((states(output_home_power)|float(0)*1.05|int(0) ) +
+            (states(smartmeter_input_sensor)|int(0)-target_power|int(0)))|int(0)/100*num_percentage)|int(0)
+        }}
+
+      # When battery is full, set min_limit to 90% of alternative_power_sensor
+      min_limit_bat_full: |-
+        {% if bat_full  %}
+          {{ (states(alternative_power_sensor)|int(0)/100*num_bypass)|int(0) }}
+        {% else %}
+          {{ 0|int(0) }}
+        {% endif %}
+
+      # When it is dark outside (night) set a minimum limit to prevent inverter stop
+      min_limit_darkness: |-
+        {{
+          num_min_limit|int(0) if states(alternative_power_sensor)|int(0) < num_min_limit|int(0)/2 else 0
+        }}
+
+      # boost function if demand is higher than 30% of maximum
+      min_limit_boost: |-
+        {{
+          states(num_inverter_limit)|int(0) if states(num_inverter_limit)|int(0)/0.3 < states(smartmeter_input_sensor)|int(0) else 0
+        }}
+
+      is_power_needed_by_us: |-
+        {{
+          num_min_limit|int(0) if states(smartmeter_input_sensor)|int(0)+(num_min_limit)|int(0) > 50
+          and
+          states(smartmeter_input_sensor)|int(0)+states(output_home_power)|int(0) > 50
+          and not
+          bat_full else 0
+        }}
+
+      prevent_low_power: |-
+        {{
+          num_min_limit|int(0) if requested_power > 0 and requested_power < num_min_limit|int(0) else 0
+        }}
+      # calculate min_limit
+      min_limit: |-
+        {{ max(
+        [
+            prevent_low_power|int(0),
+            is_power_needed_by_us|int(0),
+            min_limit_bat_full*num_panels,
+            min_limit_darkness,
+            min_limit_boost
+          ])|int(0)
+        }}
+
+      # calculate max_limit
+      max_limit: |-
+        {{
+          states(num_inverter_limit)|int(0) if states(battery_level_sensor)|int(0) >= states(max_discharge_level_sensor)|int(0) else 0
+        }}
+
+      # calculate limit
+      limit: |-
+        {{
+          min([
+            max([
+              requested_power,
+              min_limit
+            ]),
+            max_limit
+          ])
+        }}
+
+  # Stop if nothing to do
+  - if:
+      - condition: template
+        value_template: |-
+          {{
+            limit|int(0) == states(output_limit_sensor)|int(0)
+          }}
+    then:
+      - stop: "Stoppping loop. Nothing to set"
+
+  # Set limit
+  - service: number.set_value
+    target:
+      entity_id:
+        - !input output_limit_number
+    metadata: {}
+    data:
+      value: "{{ limit }}"
+
+mode: single
+max_exceeded: silent
+trace:
+  stored_traces: 30
