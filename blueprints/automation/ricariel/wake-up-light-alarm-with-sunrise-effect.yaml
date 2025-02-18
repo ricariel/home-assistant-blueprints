@@ -107,22 +107,14 @@ variables:
   tick_time: '{{float(seconds) / float(range_brightness)}}'
   check_entity: !input 'check_entity'
 trigger:
-- platform: time_pattern
-  minutes: '*'
+  - at: !input manual_time
+    trigger: time
 condition: []
 action:
-- wait_template: '{{sensor == ''none'' or as_timestamp(states(sensor), None) != None}}'
-- wait_template: '{{0 < as_timestamp(states(sensor) if sensor != ''none'' else states(''sensor.date'')
-    ~ '' '' ~ manual_time, default=0) - as_timestamp(states(''sensor.date_time_iso''), default=0) <= float(seconds)
-    and states(check_entity) in [''unknown'', ''on'', ''home'']}}'
 - choose: []
   default: !input 'pre_sunrise_actions'
 - condition: template
-  value_template: '{{sensor == ''none'' or as_timestamp(states(sensor), None) != None}}'
-- condition: template
-  value_template: '{{0 < as_timestamp(states(sensor) if sensor != ''none'' else states(''sensor.date'')
-    ~ '' '' ~ manual_time) - as_timestamp(now()) <= float(seconds) and states(check_entity)
-    in [''unknown'', ''on'', ''home'']}}'
+  value_template: '{{ states(check_entity) in [''unknown'', ''on'', ''home'']}}'
 - choose:
   - conditions:
     - '{{state_attr(light_entity, ''min_mireds'') != None}}'
