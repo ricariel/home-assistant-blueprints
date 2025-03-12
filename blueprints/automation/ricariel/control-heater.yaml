@@ -1,4 +1,3 @@
----
 blueprint:
   name: Heater Controler
   description: >-
@@ -14,7 +13,6 @@ blueprint:
   domain: automation
   author: Fabrice Kirchner
   input:
-
     window_sensor:
       name: Fenstersensoren
       description: Fenstersensoren, welche berücksichtigt werden sollen
@@ -24,20 +22,24 @@ blueprint:
             - binary_sensor
           multiple: true
           filter:
-            domain: binary_sensor
+            - domain:
+                - binary_sensor
+              device_class:
+                - window
+                - door
+variables:
+  window_sensor: !input window_sensor
 
 trigger:
   - platform: state
     entity_id: !input window_sensor
     to:
-      - "on"
-      - "off"
-
+      - 'on'
+      - 'off'
 condition: []
-
 action:
   - variables:
-      area: "{{ area_name(trigger.entity_id) }}"
+      area: '{{ area_name(trigger.entity_id) }}'
       targets: |
         {{ expand(area_entities(area))
           | selectattr('domain','eq','climate')
@@ -53,14 +55,13 @@ action:
         metadata: {}
         data: {}
         target:
-          entity_id: "{{ targets }}"
+          entity_id: '{{ targets }}'
     else:
       - action: climate.turn_on
         metadata: {}
         data: {}
         target:
-          entity_id: "{{ targets }}"
-
+          entity_id: '{{ targets }}'
 mode: single
 max_exceeded: silent
 trace:
