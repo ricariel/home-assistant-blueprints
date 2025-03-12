@@ -46,7 +46,7 @@ action:
       - condition: template
         value_template: >-
           {# Wenn alle Sensoren offen sind #}
-          {{ expand(windows_sensor) | selectattr('state', 'eq', 'on') | list
+          {{ expand(window_sensor) | selectattr('state', 'eq', 'on') | list
           | count | bool }}
     then:
       - action: climate.turn_off
