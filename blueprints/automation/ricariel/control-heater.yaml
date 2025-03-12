@@ -1,0 +1,67 @@
+---
+blueprint:
+  name: Heater Controler
+  description: >-
+    # Heater Controler
+
+    Steuert Heizungen in einem Raum, wenn Fenster geöffnet/geschlossen werden.
+
+    ## Das Original dieses Blueprint liegt unter
+    [https://git.zyria.de/pyrox/home-assistant-blueprints.git](https://git.zyria.de/pyrox/home-assistant-blueprints.git)
+
+  source_url: https://github.com/ricariel/home-assistant-blueprints/blob/main/blueprints/automation/ricariel/control-heater.yaml
+
+  domain: automation
+  author: Fabrice Kirchner
+  input:
+
+    window_sensor:
+      name: Fenstersensoren
+      description: Fenstersensoren, welche berücksichtigt werden sollen
+      selector:
+        entity:
+          domain:
+            - binary_sensor
+          multiple: true
+          filter:
+            domain: binary_sensor
+
+trigger:
+  - platform: state
+    entity_id: !input window_sensor
+    to:
+      - "on"
+      - "off"
+
+condition: []
+
+action:
+  - variables:
+      area: "{{ area_name(trigger.entity_id) }}"
+      targets: |
+        {{ expand(area_entities(area))
+          | selectattr('domain','eq','climate')
+          | map(attribute='entity_id') | join  }}
+  - if:
+      - condition: template
+        value_template: >-
+          {# Wenn alle Sensoren offen sind #}
+          {{ expand(windows_sensor) | selectattr('state', 'eq', 'on') | list
+          | count | bool }}
+    then:
+      - action: climate.turn_off
+        metadata: {}
+        data: {}
+        target:
+          entity_id: "{{ targets }}"
+    else:
+      - action: climate.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id: "{{ targets }}"
+
+mode: single
+max_exceeded: silent
+trace:
+  stored_traces: 30
