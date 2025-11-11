@@ -1,30 +1,27 @@
----
 blueprint:
-  name: Schalter mit Licht synchronisieren (mit optionalen "Ein"-Parametern)
+  name: Schalter mit Licht synchronisieren (Asymmetrisch)
   description: >
-    Schaltet ein Ziel (Bereich, Gerät oder Entität) basierend auf dem
-    Zustand einer Steuer-Entität (z.B. ein Shelly-Schalter).
+    Schaltet spezifische Lichter EIN, aber ALLE Lichter in einem
+    zugehörigen Bereich AUS. Basiert auf einer Steuer-Entität.
 
-    Ermöglicht das Setzen von Helligkeit und/oder Farbtemperatur
-    nur beim EINSCHALTEN. Beim Ausschalten wird nur 'light.turn_off' gesendet.
+    Nützlich, wenn ein Schalter (z.B. Shelly) nur die Hauptbeleuchtung
+    einschalten soll, aber beim Verlassen des Raumes (AUS)
+    sicherstellen soll, dass auch alle Stimmungs-Lichter ausgehen.
   domain: automation
 
   input:
     control_entity:
       name: Steuer-Entität (Schalter)
-      description: Die Entität (z.B. switch.shelly oder light.shelly), die den Zustand 'on'/'off' vorgibt.
+      description: Die Entität (z.B. switch.shelly), die den Zustand 'on'/'off' vorgibt.
       selector:
-        entity:
-          domain: switch
-          multiple: true
+        entity: {}
 
     target_lights_on:
       name: Ziel-Lichter (Einschalten)
       description: Die spezifischen Lichter, die eingeschaltet werden sollen.
       selector:
         target:
-          entity:
-            - domain: light
+          domain: light
 
     target_area_off:
       name: Ziel-Bereich (Ausschalten)
@@ -32,10 +29,9 @@ blueprint:
       selector:
         area: {}
 
-
     brightness_on:
       name: (Optional) Helligkeit beim Einschalten
-      description: Ein Wert von 1-100. Wird nur beim Einschalten verwendet.
+      description: Ein Wert von 1-100.
       selector:
         number:
           min: 1
@@ -73,16 +69,17 @@ action:
           id: 'turn_on'
       sequence:
         - service: light.turn_on
-          target: !input target_lights
+          target: !input target_lights_on  # <-- Nutzt das "EIN"-Ziel
           data:
             brightness_pct: !input brightness_on
             color_temp_kelvin: !input color_temp_on
 
+    # AKTION FÜR "AUS"
     - conditions:
         - condition: trigger
           id: 'turn_off'
       sequence:
         - service: light.turn_off
           target:
-            area_id: !input target_area_off
+            area_id: !input target_area_off # <-- Nutzt das "AUS"-Ziel (Bereich)
           data: {}
