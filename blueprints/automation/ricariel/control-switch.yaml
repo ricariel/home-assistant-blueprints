@@ -19,9 +19,10 @@ blueprint:
     target_lights:
       name: Ziel-Lichter (Bereich, Gerät oder Entität)
       description: Die Lichter, die gesteuert werden sollen.
+      multiple: true
       selector:
         target:
-          domain: light
+        domain: light
 
     brightness_on:
       name: (Optional) Helligkeit beim Einschalten
