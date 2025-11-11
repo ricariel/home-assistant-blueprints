@@ -1,0 +1,77 @@
+---
+blueprint:
+  name: Schalter mit Licht synchronisieren (mit optionalen "Ein"-Parametern)
+  description: >
+    Schaltet ein Ziel (Bereich, Gerät oder Entität) basierend auf dem
+    Zustand einer Steuer-Entität (z.B. ein Shelly-Schalter).
+
+    Ermöglicht das Setzen von Helligkeit und/oder Farbtemperatur
+    nur beim EINSCHALTEN. Beim Ausschalten wird nur 'light.turn_off' gesendet.
+  domain: automation
+
+  input:
+    control_entity:
+      name: Steuer-Entität (Schalter)
+      description: Die Entität (z.B. switch.shelly oder light.shelly), die den Zustand 'on'/'off' vorgibt.
+      selector:
+        entity: {}
+
+    target_lights:
+      name: Ziel-Lichter (Bereich, Gerät oder Entität)
+      description: Die Lichter, die gesteuert werden sollen.
+      selector:
+        target:
+          domain: light
+
+    brightness_on:
+      name: (Optional) Helligkeit beim Einschalten
+      description: Ein Wert von 1-100. Wird nur beim Einschalten verwendet.
+      selector:
+        number:
+          min: 1
+          max: 100
+          mode: slider
+      default: {} # Wichtig: Leeres Default macht es optional
+
+    color_temp_on:
+      name: (Optional) Farbtemperatur beim Einschalten
+      description: In Kelvin (z.B. 2700 für Warmweiß, 6500 für Kaltweiß).
+      selector:
+        number:
+          min: 2000
+          max: 6500
+          mode: slider
+      default: {} # Wichtig: Leeres Default macht es optional
+
+mode: single
+max_exceeded: silent
+
+trigger:
+  - platform: state
+    entity_id: !input control_entity
+    to: 'on'
+    id: 'turn_on'
+  - platform: state
+    entity_id: !input control_entity
+    to: 'off'
+    id: 'turn_off'
+
+action:
+  - choose:
+    - conditions:
+        - condition: trigger
+          id: 'turn_on'
+      sequence:
+        - service: light.turn_on
+          target: !input target_lights
+          data:
+            brightness_pct: !input brightness_on
+            color_temp_kelvin: !input color_temp_on
+
+    - conditions:
+        - condition: trigger
+          id: 'turn_off'
+      sequence:
+        - service: light.turn_off
+          target: !input target_lights
+          data: {}
