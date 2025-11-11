@@ -7,7 +7,10 @@ blueprint:
 
     Ermöglicht das Setzen von Helligkeit und/oder Farbtemperatur
     nur beim EINSCHALTEN. Beim Ausschalten wird nur 'light.turn_off' gesendet.
+
+  source_url: https://github.com/ricariel/home-assistant-blueprints/blob/main/blueprints/automation/ricariel/control-switch.yaml
   domain: automation
+  author: Fabrice Kirchner
 
   input:
     control_entity:
