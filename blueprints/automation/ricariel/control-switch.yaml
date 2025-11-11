@@ -23,10 +23,6 @@ blueprint:
       description: Die Lichter, die gesteuert werden sollen.
       selector:
         target:
-        entity:
-          domain: light
-          multiple: true
-
 
     brightness_on:
       name: (Optional) Helligkeit beim Einschalten
