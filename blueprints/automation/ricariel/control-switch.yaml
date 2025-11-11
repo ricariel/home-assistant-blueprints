@@ -1,6 +1,6 @@
 ---
 blueprint:
-  name: Schalter mit Licht synchronisieren (mit optionalen "Ein"-Parametern)
+  name: Lichtschalter 1009
   description: >
     Schaltet ein Ziel (Bereich, Gerät oder Entität) basierend auf dem
     Zustand einer Steuer-Entität (z.B. ein Shelly-Schalter).
