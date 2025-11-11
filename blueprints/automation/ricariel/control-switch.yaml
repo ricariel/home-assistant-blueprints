@@ -18,20 +18,13 @@ blueprint:
           domain: switch
           multiple: true
 
-    target_lights_on:
+    target_entities_on:
       name: Ziel-Lichter (Einschalten)
       description: Die spezifischen Lichter, die eingeschaltet werden sollen.
       selector:
-        target:
-          entity:
-            - domain: light
-
-    target_area_off:
-      name: Ziel-Bereich (Ausschalten)
-      description: ALLE Lichter in diesem Bereich werden ausgeschaltet.
-      selector:
-        area: {}
-
+        entity:
+          domain: light
+          multiple: true
 
     brightness_on:
       name: (Optional) Helligkeit beim Einschalten
@@ -53,8 +46,9 @@ blueprint:
           mode: slider
       default: {} # Wichtig: Leeres Default macht es optional
 
-mode: single
-max_exceeded: silent
+variables:
+  target_entities_on: !input target_entities_on
+
 
 trigger:
   - platform: state
@@ -68,21 +62,25 @@ trigger:
 
 action:
   - choose:
-    - conditions:
-        - condition: trigger
-          id: 'turn_on'
-      sequence:
-        - service: light.turn_on
-          target: !input target_lights
-          data:
-            brightness_pct: !input brightness_on
-            color_temp_kelvin: !input color_temp_on
+      - conditions:
+          - condition: trigger
+            id: 'turn_on'
+        sequence:
+          - service: light.turn_on
+            target:
+              entity_id: !input target_entities_on
+            data:
+              brightness_pct: !input brightness_on
+              color_temp_kelvin: !input color_temp_on
 
-    - conditions:
-        - condition: trigger
-          id: 'turn_off'
-      sequence:
-        - service: light.turn_off
-          target:
-            area_id: !input target_area_off
-          data: {}
+      - conditions:
+          - condition: trigger
+            id: 'turn_off'
+        sequence:
+          - service: light.turn_off
+            target:
+              area_id: >-
+                {{ area_id( (target_entities_on | first) ) }}
+            data: {}
+mode: single
+max_exceeded: silent
