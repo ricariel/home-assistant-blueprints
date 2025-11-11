@@ -15,12 +15,13 @@ blueprint:
       description: Die Entität (z.B. switch.shelly oder light.shelly), die den Zustand 'on'/'off' vorgibt.
       selector:
         entity: {}
+        multiple: true
 
     target_lights:
       name: Ziel-Lichter (Bereich, Gerät oder Entität)
       description: Die Lichter, die gesteuert werden sollen.
-      multiple: true
       selector:
+        multiple: true
         target:
         domain: light
 
