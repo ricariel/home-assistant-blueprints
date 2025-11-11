@@ -1,6 +1,6 @@
 ---
 blueprint:
-  name: Lichtschalter 1009
+  name: Lichtschalter
   description: >
     Schaltet ein Ziel (Bereich, Gerät oder Entität) basierend auf dem
     Zustand einer Steuer-Entität (z.B. ein Shelly-Schalter).
