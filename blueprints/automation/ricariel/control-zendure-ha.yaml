@@ -1,0 +1,164 @@
+---
+blueprint:
+  name: Solarflow Hub Controler
+  description: >-
+    # Solarflow Hub Controler
+
+    Diese Automation kontrolliert das Lade- und Einspeiseverhalten eines
+    Solarflow Hub. Als Bedingung müssen Solarflow Sensoren in Home Assistant
+    angelegt werden zum Beispiel über MQTT. Ausserdem müssen Schalter
+    erstellt werden um diverse Werte zu steuern.
+
+    ## Beispielhaft ein paar Ideen, wie man an die Daten im Homeassistant bekommen kann
+
+    Ein gutes Repository mit einer alternativen Steuerung über den
+    Wechselrichter und Anleitungen für den Zendure MQTT
+    [https://github.com/z-master42/solarflow.git](https://github.com/z-master42/solarflow.git)
+
+    Wie man den Solarflow offline nimmt und ihn mit einem lokalen MQTT sprechen lässt
+    [https://github.com/reinhard-brandstaedter/solarflow-bt-manager.git](https://github.com/reinhard-brandstaedter/solarflow-bt-manager.git)
+
+    ## Bedingungen
+
+    - Sensor
+      - Hier werden Daten gelesen. Die Sensoren sollten häufig aktualisiert
+        werden, damit eine genaue Steuerung möglich ist
+    - Number
+      - Hier werden Daten geschrieben. Numbers sind Schalter um den Hub zu
+        steuern. Im von Zendure getrennten Zustand hört der Hub unter
+        iot/<product_id>/<device_id>/ auf Befehle im MQTT.
+
+    Das Original dieses Blueprint liegt unter
+    [https://git.zyria.de/pyrox/home-assistant-blueprints.git](https://git.zyria.de/pyrox/home-assistant-blueprints.git)
+
+  source_url: https://github.com/ricariel/home-assistant-blueprints/blob/main/blueprints/automation/ricariel/control-solarflow.yaml
+  domain: automation
+  author: Fabrice Kirchner
+  input:
+    battery_level_sensor:
+      name: Batterieladestand Sensor
+      description: Ein Sensor, welchen den aktuellen Batterieladestand
+        wiedergibt. Bei mir electricLevel
+      selector:
+        entity:
+          domain:
+          - sensor
+          multiple: false
+          filter:
+            domain: sensor
+            device_class: battery
+
+    smartmeter_input_sensor:
+      name: Smartmeter Power Sensor
+      description: Aktueller Verbrauch (Wirkleistung) in Watt
+      selector:
+        entity:
+          domain:
+          - sensor
+          multiple: false
+          filter:
+            domain: sensor
+            device_class: power
+
+    num_bat_full:
+      name: Wann ist die Batterie als voll anzusehen
+      description: Ein Wert zwischen 0 und 100 wann die Batterie als voll gilt.
+      default: 100
+      selector:
+        number:
+          min: 0
+          max: 100
+          mode: slider
+
+    num_bat_empty:
+      name: Wann ist die Batterie als leer anzusehen
+      description: Dieser Wert darf zwischen 0 und 100 liegen.
+      default: 10
+      selector:
+        number:
+          min: 0
+          max: 100
+          mode: slider
+
+    max_discharge_level_sensor:
+      name: Akku Entladegrenze Sensor
+      description: Wie weit darf der Akku entladen werden. Bei mir minSoc
+      selector:
+        entity:
+          domain:
+          - sensor
+          multiple: false
+          filter:
+            domain: sensor
+
+    max_discharge_level_number:
+      name: Akku Entladegrenze Number
+      description: Wie weit darf der Akku entladen werden. Wird benötigt um
+        den Akku regelmäßig voll zu bekommen.Bei mir minSoc
+      selector:
+        entity:
+          domain:
+          - number
+          multiple: false
+          filter:
+            domain: number
+
+variables:
+  battery_level_sensor: !input battery_level_sensor
+  smartmeter_input_sensor: !input smartmeter_input_sensor
+  num_bat_full: !input num_bat_full
+  num_bat_empty: !input num_bat_empty
+  max_discharge_level_sensor: !input max_discharge_level_sensor
+  max_discharge_level_number: !input max_discharge_level_number
+
+trigger:
+  - platform: state
+    entity_id:
+      - !input smartmeter_input_sensor
+
+action:
+  - variables:
+      # is battery full?
+      bat_full: |-
+        {{ ((states(battery_level_sensor)|int(0) >= num_bat_full|int(0))) }}
+      # is battery empty?
+      bat_empty: |-
+        {{ ((states(battery_level_sensor)|int(100)+1< num_bat_empty|int(0))) }}
+
+  # Battery full and previously set to stop discharge
+  - if:
+      - condition: template
+        value_template: |-
+          {{
+            (bat_full) and states(max_discharge_level_sensor)|int(0) > num_bat_empty|int(0)
+          }}
+    then:
+      - service: number.set_value
+        target:
+          entity_id:
+            - !input max_discharge_level_number
+        metadata: {}
+        data:
+          value: "{{ num_bat_empty|int(0) }}"
+
+  # Battery empty disable discharging until full
+  - if:
+      - condition: template
+        value_template: |-
+          {{
+            bat_empty
+          }}
+    then:
+      - service: number.set_value
+        target:
+          entity_id:
+            - !input max_discharge_level_number
+        metadata: {}
+        data:
+          value: "{{ num_bat_full|int(0) }}"
+      - stop: "Stoppping loop. Nothing to set"
+
+mode: single
+max_exceeded: silent
+trace:
+  stored_traces: 30
