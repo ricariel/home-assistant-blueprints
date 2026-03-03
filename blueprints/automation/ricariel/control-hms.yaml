@@ -30,7 +30,7 @@ blueprint:
       selector:
         entity:
           domain:
-          - binary_sensor
+            - binary_sensor
           multiple: false
           filter:
             domain: binary_sensor
@@ -42,7 +42,7 @@ blueprint:
       selector:
         entity:
           domain:
-          - sensor
+            - sensor
           multiple: false
           filter:
             domain: sensor
@@ -55,7 +55,7 @@ blueprint:
       selector:
         entity:
           domain:
-          - number
+            - number
           multiple: false
           filter:
             domain: number
