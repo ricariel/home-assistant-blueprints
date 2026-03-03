@@ -1,3 +1,4 @@
+---
 blueprint:
   name: Hoymiles HMS Controler - Nur Einspeiseschutz
   description: >-
@@ -10,19 +11,32 @@ blueprint:
       selector:
         entity:
           domain: binary_sensor
+
     output_limit_number:
-      name: Einspeiselimit Schalter (Control)
+      name: Einspeiselimit Schalter
+      description: Eine Number zum Einstellen des Einspeiselimit. Bei mir
+        outputLimit
       selector:
         entity:
-          domain: number
-          device_class: power
+          domain:
+            - number
+          multiple: false
+          filter:
+            domain: number
+            device_class: power
+
     smartmeter_input_sensor:
       name: Smartmeter Power Sensor
-      description: Aktueller Verbrauch/Einspeisung in Watt (Einspeisung ist negativ)
+      description: Aktueller Verbrauch (Wirkleistung) in Watt
       selector:
         entity:
-          domain: sensor
-          device_class: power
+          domain:
+            - sensor
+          multiple: false
+          filter:
+            domain: sensor
+            device_class: power
+
     num_max_bypass_target:
       name: Maximale Einspeisung
       description: Watt-Wert, der maximal ins Netz fließen darf (als positiver Wert angeben).
