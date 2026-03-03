@@ -252,24 +252,11 @@ action:
         {{ ((states(battery_level_sensor)|int(0) >= num_bat_full|int(0))) }}
 
 
-      # boost function if demand is higher than 30% of maximum
-      min_limit_boost: |-
-        {{
-          num_inverter_limit|int(0) if num_inverter_limit|int(0)/0.3 < states(smartmeter_input_sensor)|int(0) else 0
-        }}
-
-      min_limit_bat_full: |-
-        {{
-          (states(alternative_power_sensor)|int(0)/100*num_bypass)|int(0) if bat_full else 0|int(0)
-        }}
-
       # calculate min_limit
       min_limit: |-
         {{
           max([
-            num_min_limit,
-            min_limit_bat_full*num_panels,
-            min_limit_boost
+            num_min_limit
           ])|int(0)
         }}
 

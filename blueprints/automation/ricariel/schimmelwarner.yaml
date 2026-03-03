@@ -1,0 +1,48 @@
+blueprint:
+  name: Schimmelwarnung mit Sprachausgabe (HomePod & Handy)
+  description: >
+    Sendet eine Warnung an ein Smartphone und macht eine Durchsage auf einem HomePod,
+    wenn der Mold-Indicator-Sensor einen bestimmten Schwellenwert überschreitet.
+  domain: automation
+  input:
+    mold_sensor:
+      name: Schimmel-Sensor (Mold Indicator)
+      description: Der Sensor, der den Prozentwert liefert (z.B. sensor.schimmelrisiko_wohnzimmer).
+      selector:
+        entity:
+          domain: sensor
+    threshold:
+      name: Schwellenwert (%)
+      description: Ab wie viel Prozent soll gewarnt werden?
+      default: 75
+      selector:
+        number:
+          min: 10
+          max: 100
+          unit_of_measurement: "%"
+    notify_device:
+      name: Handy für Benachrichtigung
+      description: Das Gerät, das die Push-Nachricht erhalten soll.
+      selector:
+        device:
+          integration: mobile_app
+
+trigger:
+  - platform: numeric_state
+    entity_id: !input mold_sensor
+    above: !input threshold
+    for:
+      minutes: 10
+
+variables:
+  sensor_entity: !input mold_sensor
+  sensor_val: "{{ states(sensor_entity) }}"
+
+action:
+  # 1. Push Nachricht aufs Handy
+  - domain: mobile_app
+    type: notify
+    device_id: !input notify_device
+    message: "⚠️ Schimmelgefahr! Risiko bei {{ sensor_val }}%."
+    title: "Lüften notwendig"
+mode: single

@@ -1,0 +1,89 @@
+blueprint:
+  name: Hoymiles HMS Controler - Nur Einspeiseschutz
+  description: >-
+    Diese Automation verhindert lediglich, dass mehr als der definierte Wert
+    (num_max_bypass_target) in das öffentliche Netz eingespeist wird.
+  domain: automation
+  input:
+    reachable_sensor:
+      name: Erreichbarkeits Sensor
+      selector:
+        entity:
+          domain: binary_sensor
+    output_limit_number:
+      name: Einspeiselimit Schalter (Control)
+      selector:
+        entity:
+          domain: number
+          device_class: power
+    smartmeter_input_sensor:
+      name: Smartmeter Power Sensor
+      description: Aktueller Verbrauch/Einspeisung in Watt (Einspeisung ist negativ)
+      selector:
+        entity:
+          domain: sensor
+          device_class: power
+    num_max_bypass_target:
+      name: Maximale Einspeisung
+      description: Watt-Wert, der maximal ins Netz fließen darf (als positiver Wert angeben).
+      default: 600
+      selector:
+        number:
+          min: 0
+          max: 2000
+          unit_of_measurement: "W"
+          mode: slider
+    num_request_limit:
+      name: Anfragelimit (Sekunden)
+      default: 10
+      selector:
+        number:
+          min: 1
+          mode: box
+
+variables:
+  smartmeter_entity: !input smartmeter_input_sensor
+  limit_entity: !input output_limit_number
+  max_injection: !input num_max_bypass_target
+  request_limit: !input num_request_limit
+
+trigger:
+  - platform: state
+    entity_id: !input smartmeter_input_sensor
+
+condition:
+  - condition: state
+    entity_id: !input reachable_sensor
+    state: "on"
+  - condition: template
+    value_template: >-
+      {{ now() - state_attr(this.entity_id, "last_triggered") | default(as_datetime(0), true) > timedelta(seconds=request_limit) }}
+  - condition: template
+    # Nur triggern, wenn Einspeisung (negativ) größer als erlaubt (z.B. -800W bei Limit 600W)
+    # ODER wenn wir aktuell gedrosselt sind und wieder Luft nach oben ist.
+    value_template: >-
+      {{ states(smartmeter_entity)|float(0) < (max_injection * -1) }}
+
+action:
+  - variables:
+      current_smartmeter: "{{ states(smartmeter_entity)|float(0) }}"
+      current_limit: "{{ states(limit_entity)|float(0) }}"
+      # Berechnung des neuen Limits: Altes Limit minus die "zu viel" eingespeiste Leistung
+      # Da current_smartmeter negativ ist: -800 + 600 = -200 Abzug vom Limit.
+      new_limit: >-
+        {% set excess = current_smartmeter + max_injection %}
+        {% set val = current_limit + excess %}
+        {{ [val, 0] | max | round(0) }}
+
+  - if:
+      - condition: template
+        value_template: "{{ new_limit|int != current_limit|int }}"
+    then:
+      - service: number.set_value
+        target:
+          entity_id: !input output_limit_number
+        data:
+          value: "{{ new_limit }}"
+
+mode: single
+max_exceeded: silent

@@ -1,53 +1,38 @@
 ---
 blueprint:
   name: Solarflow Hub Controler
-  description: >-
-    # Solarflow Hub Controler
-
-    Diese Automation kontrolliert das Lade- und Einspeiseverhalten eines
-    Solarflow Hub. Als Bedingung müssen Solarflow Sensoren in Home Assistant
-    angelegt werden zum Beispiel über MQTT. Ausserdem müssen Schalter
-    erstellt werden um diverse Werte zu steuern.
-
-    ## Beispielhaft ein paar Ideen, wie man an die Daten im Homeassistant bekommen kann
-
-    Ein gutes Repository mit einer alternativen Steuerung über den
-    Wechselrichter und Anleitungen für den Zendure MQTT
-    [https://github.com/z-master42/solarflow.git](https://github.com/z-master42/solarflow.git)
-
-    Wie man den Solarflow offline nimmt und ihn mit einem lokalen MQTT sprechen lässt
-    [https://github.com/reinhard-brandstaedter/solarflow-bt-manager.git](https://github.com/reinhard-brandstaedter/solarflow-bt-manager.git)
-
-    ## Bedingungen
-
-    - Sensor
-      - Hier werden Daten gelesen. Die Sensoren sollten häufig aktualisiert
-        werden, damit eine genaue Steuerung möglich ist
-    - Number
-      - Hier werden Daten geschrieben. Numbers sind Schalter um den Hub zu
-        steuern. Im von Zendure getrennten Zustand hört der Hub unter
-        iot/<product_id>/<device_id>/ auf Befehle im MQTT.
-
-    Das Original dieses Blueprint liegt unter
-    [https://git.zyria.de/pyrox/home-assistant-blueprints.git](https://git.zyria.de/pyrox/home-assistant-blueprints.git)
-
+  description: "# Solarflow Hub Controler\nDiese Automation kontrolliert das Lade-
+    und Einspeiseverhalten eines Solarflow Hub. Als Bedingung müssen Solarflow Sensoren
+    in Home Assistant angelegt werden zum Beispiel über MQTT. Ausserdem müssen Schalter
+    erstellt werden um diverse Werte zu steuern.\n## Beispielhaft ein paar Ideen,
+    wie man an die Daten im Homeassistant bekommen kann\nEin gutes Repository mit
+    einer alternativen Steuerung über den Wechselrichter und Anleitungen für den Zendure
+    MQTT [https://github.com/z-master42/solarflow.git](https://github.com/z-master42/solarflow.git)\nWie
+    man den Solarflow offline nimmt und ihn mit einem lokalen MQTT sprechen lässt
+    [https://github.com/reinhard-brandstaedter/solarflow-bt-manager.git](https://github.com/reinhard-brandstaedter/solarflow-bt-manager.git)\n##
+    Bedingungen\n- Sensor\n  - Hier werden Daten gelesen. Die Sensoren sollten häufig
+    aktualisiert\n    werden, damit eine genaue Steuerung möglich ist\n- Number\n
+    \ - Hier werden Daten geschrieben. Numbers sind Schalter um den Hub zu\n    steuern.
+    Im von Zendure getrennten Zustand hört der Hub unter\n    iot/<product_id>/<device_id>/
+    auf Befehle im MQTT.\n\nDas Original dieses Blueprint liegt unter [https://git.zyria.de/pyrox/home-assistant-blueprints.git](https://git.zyria.de/pyrox/home-assistant-blueprints.git)"
   source_url: https://github.com/ricariel/home-assistant-blueprints/blob/main/blueprints/automation/ricariel/control-solarflow.yaml
   domain: automation
   author: Fabrice Kirchner
   input:
     battery_level_sensor:
       name: Batterieladestand Sensor
-      description: Ein Sensor, welchen den aktuellen Batterieladestand
-        wiedergibt. Bei mir electricLevel
+      description: Ein Sensor, welchen den aktuellen Batterieladestand wiedergibt.
+        Bei mir electricLevel
       selector:
         entity:
           domain:
           - sensor
           multiple: false
           filter:
-            domain: sensor
-            device_class: battery
-
+          - domain:
+            - sensor
+            device_class:
+            - battery
     output_limit_sensor:
       name: Einspeiselimit Sensor
       description: Das aktuelle Einspeiselimit des Hub. Bei mir outputLimit
@@ -57,26 +42,27 @@ blueprint:
           - sensor
           multiple: false
           filter:
-            domain: sensor
-            device_class: power
-
+          - domain:
+            - sensor
+            device_class:
+            - power
     output_limit_number:
       name: Einspeiselimit Schalter
-      description: Eine Number zum Einstellen des Einspeiselimit. Bei mir
-        outputLimit
+      description: Eine Number zum Einstellen des Einspeiselimit. Bei mir outputLimit
       selector:
         entity:
           domain:
           - number
           multiple: false
           filter:
-            domain: number
-            device_class: power
-
+          - domain:
+            - number
+            device_class:
+            - power
     output_home_power:
       name: Aktuelle Einspeisung Sensor
-      description: Was der Hub aktuell ins Haus abgibt. Dies inkludiert auch
-        Solarleistung. Bei mir outputHomePower
+      description: Was der Hub aktuell ins Haus abgibt. Dies inkludiert auch Solarleistung.
+        Bei mir outputHomePower
       selector:
         entity:
           domain:

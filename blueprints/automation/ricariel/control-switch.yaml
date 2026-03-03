@@ -1,89 +1,85 @@
 ---
 blueprint:
   name: Lichtschalter
-  description: >
-    Schaltet ein Ziel (Bereich, Gerät oder Entität) basierend auf dem
+  description: 'Schaltet ein Ziel (Bereich, Gerät oder Entität) basierend auf dem
     Zustand einer Steuer-Entität (z.B. ein Shelly-Schalter).
 
-    Ermöglicht das Setzen von Helligkeit und/oder Farbtemperatur
-    nur beim EINSCHALTEN. Beim Ausschalten wird nur 'light.turn_off' gesendet.
-
+    Ermöglicht das Setzen von Helligkeit und/oder Farbtemperatur nur beim EINSCHALTEN.
+    Beim Ausschalten wird nur ''light.turn_off'' gesendet.
+    '
   source_url: https://github.com/ricariel/home-assistant-blueprints/blob/main/blueprints/automation/ricariel/control-switch.yaml
   domain: automation
   author: Fabrice Kirchner
-
   input:
     control_entity:
       name: Steuer-Entität (Schalter)
-      description: Die Entität (z.B. switch.shelly oder light.shelly), die den Zustand 'on'/'off' vorgibt.
+      description: Die Entität (z.B. switch.shelly oder light.shelly), die den Zustand
+        'on'/'off' vorgibt.
       selector:
         entity:
-          domain: switch
+          domain:
+          - switch
           multiple: true
-
+          reorder: false
     target_entities_on:
       name: Ziel-Lichter (Einschalten)
       description: Die spezifischen Lichter, die eingeschaltet werden sollen.
       selector:
         entity:
-          domain: light
+          domain:
+          - light
           multiple: true
-
+          reorder: false
     brightness_on:
       name: (Optional) Helligkeit beim Einschalten
       description: Ein Wert von 1-100. Wird nur beim Einschalten verwendet.
       selector:
         number:
-          min: 1
-          max: 100
+          min: 1.0
+          max: 100.0
           mode: slider
-      default: {} # Wichtig: Leeres Default macht es optional
-
+          step: 1.0
+      default: {}
     color_temp_on:
       name: (Optional) Farbtemperatur beim Einschalten
       description: In Kelvin (z.B. 2700 für Warmweiß, 6500 für Kaltweiß).
       selector:
         number:
-          min: 2000
-          max: 6500
+          min: 2000.0
+          max: 6500.0
           mode: slider
-      default: {} # Wichtig: Leeres Default macht es optional
-
+          step: 1.0
+      default: {}
 variables:
   target_entities_on: !input target_entities_on
-
-
 trigger:
-  - platform: state
-    entity_id: !input control_entity
-    to: 'on'
-    id: 'turn_on'
-  - platform: state
-    entity_id: !input control_entity
-    to: 'off'
-    id: 'turn_off'
-
+- platform: state
+  entity_id: !input control_entity
+  to: 'on'
+  id: turn_on
+- platform: state
+  entity_id: !input control_entity
+  to: 'off'
+  id: turn_off
 action:
-  - choose:
-      - conditions:
-          - condition: trigger
-            id: 'turn_on'
-        sequence:
-          - service: light.turn_on
-            target:
-              entity_id: !input target_entities_on
-            data:
-              brightness_pct: !input brightness_on
-              color_temp_kelvin: !input color_temp_on
-
-      - conditions:
-          - condition: trigger
-            id: 'turn_off'
-        sequence:
-          - service: light.turn_off
-            target:
-              area_id: >-
-                {{ area_id( (target_entities_on | first) ) }}
-            data: {}
+- choose:
+  - conditions:
+    - condition: trigger
+      id: turn_on
+    sequence:
+    - service: light.turn_on
+      target:
+        entity_id: !input target_entities_on
+      data:
+        brightness_pct: !input brightness_on
+        color_temp_kelvin: !input color_temp_on
+  - conditions:
+    - condition: trigger
+      id: turn_off
+    sequence:
+    - service: light.turn_off
+      target:
+        area_id: '{{ area_id( (target_entities_on | first) ) }}'
+      data: {}
 mode: single
 max_exceeded: silent
