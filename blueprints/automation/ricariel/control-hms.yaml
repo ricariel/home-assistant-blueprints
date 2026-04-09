@@ -1,29 +1,24 @@
----
 blueprint:
   name: Hoymiles HMS Controler
-  description: >-
+  description: |
     # Hoymiles HMS Controler
-
     Diese Automation kontrolliert das Einspeiseverhalten eines HMS Wechselrichters.
     Als Bedingung müssen HMS Sensoren in Home Assistant angelegt werden zum Beispiel
     über MQTT. Ausserdem müssen Schalter erstellt werden um diverse Werte zu steuern.
 
     ## Beispielhaft ein paar Ideen, wie man an die Daten im Homeassistant bekommen kann
 
-    [OpenDTU](https://github.com/tbnobody/OpenDTU) als Start und sehr guter MQTT
-    Unterstützung.
+    [OpenDTU](https://github.com/tbnobody/OpenDTU) als Start und sehr guter MQTT Unterstützung.
 
-    [OpenDTU on Battery](https://github.com/helgeerbe/OpenDTU-OnBattery) auch wenn man
-    dann diese Steuerung nicht benötigt.
+    [OpenDTU on Battery](https://github.com/helgeerbe/OpenDTU-OnBattery) auch wenn
+    man dann diese Steuerung nicht benötigt.
 
     ## Das Original dieses Blueprint liegt unter
     [https://git.zyria.de/pyrox/home-assistant-blueprints.git](https://git.zyria.de/pyrox/home-assistant-blueprints.git)
-
   source_url: https://github.com/ricariel/home-assistant-blueprints/blob/main/blueprints/automation/ricariel/control-hms.yaml
   domain: automation
   author: Fabrice Kirchner
   input:
-
     reachable_sensor:
       name: Erreichbarkeits Sensor
       description: Ist der Wechselrichter erreichbar?
@@ -34,11 +29,10 @@ blueprint:
           multiple: false
           filter:
             domain: binary_sensor
-
     battery_level_sensor:
       name: Batterieladestand Sensor
-      description: Ein Sensor, welchen den aktuellen Batterieladestand
-        wiedergibt. Bei mir electricLevel
+      description: Ein Sensor, welchen den aktuellen Batterieladestand wiedergibt.
+        Bei mir electricLevel
       selector:
         entity:
           domain:
@@ -47,11 +41,9 @@ blueprint:
           filter:
             domain: sensor
             device_class: battery
-
     output_limit_number:
       name: Einspeiselimit Schalter
-      description: Eine Number zum Einstellen des Einspeiselimit. Bei mir
-        outputLimit
+      description: Eine Number zum Einstellen des Einspeiselimit. Bei mir outputLimit
       selector:
         entity:
           domain:
@@ -60,11 +52,10 @@ blueprint:
           filter:
             domain: number
             device_class: power
-
     output_home_power:
       name: Aktuelle Einspeisung Sensor
-      description: Was der Hub aktuell ins Haus abgibt. Dies inkludiert auch
-        Solarleistung. Bei mir outputHomePower
+      description: Was der Hub aktuell ins Haus abgibt. Dies inkludiert auch Solarleistung.
+        Bei mir outputHomePower
       selector:
         entity:
           domain:
@@ -73,7 +64,6 @@ blueprint:
           filter:
             domain: sensor
             device_class: power
-
     smartmeter_input_sensor:
       name: Smartmeter Power Sensor
       description: Aktueller Verbrauch (Wirkleistung) in Watt
@@ -85,13 +75,12 @@ blueprint:
           filter:
             domain: sensor
             device_class: power
-
     alternative_power_sensor:
       name: Alternativer Power Sensor
-      description: Dieser Sensor sollte in etwa den Wert eines nicht
-        gedrosselten Solarpanel in Watt ausgeben. Dies wird benutzt für eine
-        alternative Bypass Implementierung für den Hub. Bei mir ist es ein
-        Panel, was nicht am Solarflow hängt
+      description: Dieser Sensor sollte in etwa den Wert eines nicht gedrosselten
+        Solarpanel in Watt ausgeben. Dies wird benutzt für eine alternative Bypass
+        Implementierung für den Hub. Bei mir ist es ein Panel, was nicht am Solarflow
+        hängt
       selector:
         entity:
           domain:
@@ -100,113 +89,107 @@ blueprint:
           filter:
             domain: sensor
             device_class: power
-
     num_request_limit:
       name: Anfragelimit in Sekunden
-      description: Wie oft soll die Automation mindestens warten bis erneut
-        geregelt wird.
+      description: Wie oft soll die Automation mindestens warten bis erneut geregelt
+        wird.
       default: 10
       selector:
         number:
-          min: 1
+          min: 1.0
           mode: box
-
+          step: 1.0
     num_min_limit:
       name: Minimales Limit beim Regeln
-      description: Manche Wechselrichter benötigen eine minimale Leistung
-        um gut zu funktionieren.
+      description: Manche Wechselrichter benötigen eine minimale Leistung um gut zu
+        funktionieren.
       default: 50
       selector:
         number:
-          min: 0
+          min: 0.0
           mode: box
-
-
+          step: 1.0
     num_upper_power_acceptance:
       name: Oberes akzeptables Limit unter dem Wir nicht regeln
-      description: Die Steuerung versucht die Einspeisung zwischen zwei
-        Punkten zu halten, wenn nicht genügend Solarenergie kommt. Dies ist
-        der obere davon.
+      description: Die Steuerung versucht die Einspeisung zwischen zwei Punkten zu
+        halten, wenn nicht genügend Solarenergie kommt. Dies ist der obere davon.
       default: 10
       selector:
         number:
-          min: -100
-          max: 100
-          unit_of_measurement: "W"
+          min: -100.0
+          max: 100.0
+          unit_of_measurement: W
           mode: slider
-
+          step: 1.0
     num_lower_power_acceptance:
       name: Unteres akzeptables Limit unter dem Wir nicht regeln
-      description: Die Steuerung versucht die Einspeisung zwischen zwei
-        Punkten zu halten, wenn nicht genügend Solarenergie kommt. Dies ist
-        der untere davon.
+      description: Die Steuerung versucht die Einspeisung zwischen zwei Punkten zu
+        halten, wenn nicht genügend Solarenergie kommt. Dies ist der untere davon.
       default: '-10'
       selector:
         number:
-          min: -100
-          max: 100
-          unit_of_measurement: "W"
+          min: -100.0
+          max: 100.0
+          unit_of_measurement: W
           mode: slider
-
+          step: 1.0
     num_inverter_limit:
       name: Sensor für das maximale Limit des Wechselrichter
-      description: Hier ist der Sensor für das maximale Limit des Hubs
-        anzugeben, wieviel eingespeist werden darf. Hast du zum Beispiel
-        einen Wechselrichter mit Limit 300Watt je MPTT aber den Hub an zwei
-        MPTT angeschlossen, kannst du hier 600 angeben. Diese Einstellung
-        wird normal über die Zendure App bei der Einrichtung gesetzt. Bei
-        mir inverseMaxPower
+      description: Hier ist der Sensor für das maximale Limit des Hubs anzugeben,
+        wieviel eingespeist werden darf. Hast du zum Beispiel einen Wechselrichter
+        mit Limit 300Watt je MPTT aber den Hub an zwei MPTT angeschlossen, kannst
+        du hier 600 angeben. Diese Einstellung wird normal über die Zendure App bei
+        der Einrichtung gesetzt. Bei mir inverseMaxPower
       default: 800
       selector:
         number:
-          min: 0
-          max: 2000
+          min: 0.0
+          max: 2000.0
           mode: slider
-
+          step: 1.0
     num_max_bypass_target:
       name: Nummer für die angestrebte Einspeisung ins Netz im simulierten Bypass
-      description: Hier kann man die Leistung einstellen, welche maximal am Zähler ankommen soll.
+      description: Hier kann man die Leistung einstellen, welche maximal am Zähler
+        ankommen soll.
       default: 600
       selector:
         number:
-          min: 0
-          max: 1000
+          min: 0.0
+          max: 1000.0
           mode: slider
-
+          step: 1.0
     num_bat_full:
       name: Wann ist die Batterie als voll anzusehen
       description: Ein Wert zwischen 0 und 100 wann die Batterie als voll gilt.
       default: 100
       selector:
         number:
-          min: 0
-          max: 100
+          min: 0.0
+          max: 100.0
           mode: slider
-
+          step: 1.0
     num_bypass:
       name: Prozentualer Anteil im emulierten Bypass
-      description: Wieviel soll dieser Hub zur Stromlieferung an das Haus
-        beitragen, wenn der Akku voll ist. Dies ist ein emulierter Bypass
-        und abhängig von der externen Panelleistung.
+      description: Wieviel soll dieser Hub zur Stromlieferung an das Haus beitragen,
+        wenn der Akku voll ist. Dies ist ein emulierter Bypass und abhängig von der
+        externen Panelleistung.
       default: 90
       selector:
         number:
-          min: 0
-          max: 100
-          unit_of_measurement: "%"
+          min: 0.0
+          max: 100.0
+          unit_of_measurement: '%'
           mode: slider
-
+          step: 1.0
     num_panels:
       name: Anzahl der Anschlüsse am Wechselrichter
-      description: Hier gibst du die Anzahl der blegten Anschlüsse am
-        Wechselrichter an.
+      description: Hier gibst du die Anzahl der blegten Anschlüsse am Wechselrichter
+        an.
       default: 1
       selector:
         number:
           mode: box
-
-
-
+          step: 1.0
 variables:
   battery_level_sensor: !input battery_level_sensor
   num_request_limit: !input num_request_limit
@@ -222,87 +205,84 @@ variables:
   num_bypass: !input num_bypass
   num_panels: !input num_panels
   num_max_bypass_target: !input num_max_bypass_target
-
 trigger:
   - platform: state
     entity_id:
       - !input smartmeter_input_sensor
-
 condition:
   - condition: template
     value_template: >-
       {% if num_lower_power_acceptance > num_upper_power_acceptance %}
-      {% set num_lower_power_acceptance = num_lower_power_acceptance + num_upper_power_acceptance %}
-      {% set num_upper_power_acceptance = num_lower_power_acceptance - num_upper_power_acceptance %}
-      {% set num_lower_power_acceptance = num_lower_power_acceptance - num_upper_power_acceptance %}
+        {% set num_lower_power_acceptance = num_lower_power_acceptance + num_upper_power_acceptance %}
+        {% set num_upper_power_acceptance = num_lower_power_acceptance - num_upper_power_acceptance %}
+        {% set num_lower_power_acceptance = num_lower_power_acceptance - num_upper_power_acceptance %}
       {% endif %}
-
-      {{ states(smartmeter_input_sensor)|int(0) not in range(num_lower_power_acceptance,num_upper_power_acceptance) }}
-
+      {{ states(smartmeter_input_sensor)|int(0) not in range(num_lower_power_acceptance, num_upper_power_acceptance) }}
   - condition: template
-    value_template: '{{ now() - state_attr(this.entity_id, "last_triggered") | default(as_datetime(0), true) > timedelta(seconds=num_request_limit) }}'
+    value_template: >-
+      {{ now() - state_attr(this.entity_id, "last_triggered") | default(as_datetime(0), true)
+         > timedelta(seconds=num_request_limit) }}
   - condition: state
     entity_id: !input reachable_sensor
-    state: "on"
-
+    state: 'on'
 action:
   - variables:
-      # is battery full?
-      bat_full: |-
-        {{ ((states(battery_level_sensor)|int(0) >= num_bat_full|int(0))) }}
-
-
-      # calculate min_limit
-      min_limit: |-
+      bat_full: '{{ states(battery_level_sensor)|int(0) >= num_bat_full|int(0) }}'
+      min_limit_boost: >-
+        {{
+          num_inverter_limit|int(0)
+          if num_inverter_limit|int(0) / 0.3 < states(smartmeter_input_sensor)|int(0)
+          else 0
+        }}
+      min_limit_bat_full: >-
+        {{
+          (states(alternative_power_sensor)|int(0) / 100 * num_bypass)|int(0)
+          if bat_full else 0|int(0)
+        }}
+      min_limit: >-
         {{
           max([
-            num_min_limit
+            num_min_limit,
+            min_limit_bat_full * num_panels,
+            min_limit_boost
           ])|int(0)
         }}
-
-      max_possible_output: |-
+      max_possible_output: >-
         {{
           (
             (
               (
-                states(output_limit_number)|int(0)+(states(smartmeter_input_sensor)|int(0))+num_max_bypass_target|int(0)
-              )*2/100
-            )|round(0,'ceil')|int*0.5
-          )*100
+                states(output_limit_number)|int(0) +
+                states(smartmeter_input_sensor)|int(0) +
+                num_max_bypass_target|int(0)
+              ) * 2 / 100
+            )|round(0, 'ceil')|int * 0.5
+          ) * 100
         }}
-
-      # calculate max_limit
-      max_limit: |-
+      max_limit: >-
         {{
           min([
             max_possible_output if max_possible_output > num_min_limit else num_min_limit,
             num_inverter_limit|int(0)
-            ])
+          ])
         }}
-
-      # get target power
-      target_power: |-
-        {{
-          ((num_lower_power_acceptance|int(0)+num_upper_power_acceptance|int(0))/2)
-        }}
-
-      # get demand and shrink to local instance
-      requested_power: |-
+      target_power: >-
+        {{ (num_lower_power_acceptance|int(0) + num_upper_power_acceptance|int(0)) / 2 }}
+      requested_power: >-
         {{
           (
-              states(output_home_power)|float(0)|int(0)+
-              states(smartmeter_input_sensor)|int(0)-
-              target_power|int(0)
+            states(output_home_power)|float(0)|int(0) +
+            states(smartmeter_input_sensor)|int(0) -
+            target_power|int(0)
           )|int(0)
         }}
-
-
-      min_inverter_limit: "{{
-        num_inverter_limit|int(0) if num_inverter_limit|int(0)*0.17 < requested_power|int(0) else 0
-      }}"
-
-      # calculate limit
-      limit: |-
+      min_inverter_limit: >-
+        {{
+          num_inverter_limit|int(0)
+          if num_inverter_limit|int(0) * 0.17 < requested_power|int(0)
+          else 0
+        }}
+      limit: >-
         {{
           min([
             max([
@@ -313,26 +293,18 @@ action:
             max_limit
           ])
         }}
-
-  # Stop if nothing to do
   - if:
       - condition: template
-        value_template: |-
-          {{
-            limit|int(0) == states(output_limit_number)|int(0)
-          }}
+        value_template: '{{ limit|int(0) == states(output_limit_number)|int(0) }}'
     then:
-      - stop: "Stoppping loop. Nothing to set"
-
-  # Set limit
+      - stop: Stoppping loop. Nothing to set
   - service: number.set_value
     target:
       entity_id:
         - !input output_limit_number
     metadata: {}
     data:
-      value: "{{ limit }}"
-
+      value: '{{ limit }}'
 mode: single
 max_exceeded: silent
 trace:

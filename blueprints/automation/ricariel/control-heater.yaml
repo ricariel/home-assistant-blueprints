@@ -1,10 +1,11 @@
 blueprint:
   name: Heater Controler
-  description: '# Heater Controler
-
+  description: |
+    # Heater Controler
     Steuert Heizungen in einem Raum, wenn Fenster geöffnet/geschlossen werden.
 
-    ## Das Original dieses Blueprint liegt unter [https://git.zyria.de/pyrox/home-assistant-blueprints.git](https://git.zyria.de/pyrox/home-assistant-blueprints.git)'
+    ## Das Original dieses Blueprint liegt unter
+    [https://git.zyria.de/pyrox/home-assistant-blueprints.git](https://git.zyria.de/pyrox/home-assistant-blueprints.git)
   source_url: https://github.com/ricariel/home-assistant-blueprints/blob/main/blueprints/automation/ricariel/control-heater.yaml
   domain: automation
   author: Fabrice Kirchner
@@ -35,12 +36,15 @@ condition: []
 action:
 - variables:
     area: '{{ area_name(trigger.entity_id) }}'
-    targets: "{{ expand(area_entities(area))\n  | selectattr('domain','eq','climate')\n
-      \ | map(attribute='entity_id') | join  }}\n"
+    targets: >-
+      {{ expand(area_entities(area))
+        | selectattr('domain', 'eq', 'climate')
+        | map(attribute='entity_id') | join }}
 - if:
   - condition: template
-    value_template: '{# Wenn alle Sensoren offen sind #} {{ expand(window_sensor)
-      | selectattr(''state'', ''eq'', ''on'') | list | count | bool }}'
+    value_template: >-
+      {# Wenn alle Sensoren offen sind #}
+      {{ expand(window_sensor) | selectattr('state', 'eq', 'on') | list | count | bool }}
   then:
   - action: climate.turn_off
     metadata: {}

@@ -1,16 +1,19 @@
 blueprint:
-  name: Schimmelwarnung mit Sprachausgabe (HomePod & Handy)
-  description: >
-    Sendet eine Warnung an ein Smartphone und macht eine Durchsage auf einem HomePod,
-    wenn der Mold-Indicator-Sensor einen bestimmten Schwellenwert überschreitet.
+  name: Schimmelwarnung Pro (Flexibel)
+  description: |
+    Überwacht Sensoren der "Mold Indicator" Integration.
+    Führt bei Gefahr beliebige Benachrichtigungs-Aktionen aus (Handy, Mail, Telegram).
+    Macht zusätzlich eine Sprachansage (nur tagsüber).
   domain: automation
   input:
-    mold_sensor:
-      name: Schimmel-Sensor (Mold Indicator)
-      description: Der Sensor, der den Prozentwert liefert (z.B. sensor.schimmelrisiko_wohnzimmer).
+    mold_sensors:
+      name: Schimmel-Sensoren
+      description: Wähle die Mold-Indicator-Sensoren aus.
       selector:
         entity:
           domain: sensor
+          integration: mold_indicator
+          multiple: true
     threshold:
       name: Schwellenwert (%)
       description: Ab wie viel Prozent soll gewarnt werden?
@@ -20,29 +23,72 @@ blueprint:
           min: 10
           max: 100
           unit_of_measurement: "%"
-    notify_device:
-      name: Handy für Benachrichtigung
-      description: Das Gerät, das die Push-Nachricht erhalten soll.
+    notification_action:
+      name: Benachrichtigungs-Aktion
+      description: |
+        Was soll passieren? Hier kannst du eine oder mehrere Benachrichtigungen hinzufügen.
+        Wähle z.B. "Dienst ausführen" -> "Benachrichtigung: Send to iPhone".
+
+        Du kannst diese Variablen im Text nutzen:
+        {{ trigger_area }} = Name des Raums
+        {{ sensor_val }} = Gemessener Wert
       selector:
-        device:
-          integration: mobile_app
-
+        action: {}
+    media_players:
+      name: Lautsprecher für Durchsage
+      description: HomePods oder andere Lautsprecher für die Sprachwarnung (Optional).
+      default: []
+      selector:
+        entity:
+          domain: media_player
+          multiple: true
+    tts_service:
+      name: TTS Dienst
+      description: Der Text-to-Speech Dienst (z.B. tts.cloud_say).
+      default: tts.cloud_say
+      selector:
+        text:
+    tts_after:
+      name: Sprachansage erlaubt ab
+      default: "07:00:00"
+      selector:
+        time:
+    tts_before:
+      name: Sprachansage erlaubt bis
+      default: "22:00:00"
+      selector:
+        time:
 trigger:
-  - platform: numeric_state
-    entity_id: !input mold_sensor
-    above: !input threshold
-    for:
-      minutes: 10
-
+- platform: numeric_state
+  entity_id: !input mold_sensors
+  above: !input threshold
+  for:
+    minutes: 10
 variables:
-  sensor_entity: !input mold_sensor
-  sensor_val: "{{ states(sensor_entity) }}"
-
+  trigger_entity: '{{ trigger.entity_id }}'
+  trigger_name: '{{ trigger.to_state.attributes.friendly_name }}'
+  trigger_area: '{{ area_name(trigger.entity_id) | default(trigger_name) }}'
+  sensor_val: '{{ trigger.to_state.state }}'
+  inputs_media_players: !input media_players
 action:
-  # 1. Push Nachricht aufs Handy
-  - domain: mobile_app
-    type: notify
-    device_id: !input notify_device
-    message: "⚠️ Schimmelgefahr! Risiko bei {{ sensor_val }}%."
-    title: "Lüften notwendig"
-mode: single
+- parallel:
+  - choose: []
+    default: !input notification_action
+  - if:
+    - condition: template
+      value_template: '{{ expand(inputs_media_players) | count > 0 }}'
+    - condition: time
+      after: !input tts_after
+      before: !input tts_before
+    then:
+    - action: !input tts_service
+      target:
+        entity_id: tts.google_translate_de_com
+      data:
+        cache: true
+        media_player_entity_id: !input media_players
+        message: >-
+          Achtung. Hohes Schimmelrisiko in {{ trigger_area }}.
+          Der Wert liegt bei {{ sensor_val }} Prozent. Bitte lüften.
+mode: parallel
+max: 10

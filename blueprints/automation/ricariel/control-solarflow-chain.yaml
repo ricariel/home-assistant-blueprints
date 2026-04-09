@@ -1,0 +1,295 @@
+blueprint:
+  name: Solarflow Reihe Prozentregler
+  description: |
+    # Solarflow Reihe Prozentregler
+    Diese Automation kontrolliert das Einspeiseverhalten eines Solarflow Hub in einer
+    Reihenschaltung. Der Hub speist maximal einen konfigurierbaren Prozentsatz
+    (Standard: 90%) des Gesamtbedarfs ein. Als Referenz für die aktuelle Einspeisung
+    dient der Ausgangssensor des letzten Solarflow in der Reihe.
+
+    ## Zweck
+    Durch das Begrenzen auf z.B. 90% des Bedarfs bleibt immer ein Restbedarf aus dem
+    Netz bestehen. Dadurch wird verhindert, dass der gesteuerte Akku vollständig
+    entladen wird – es bleibt Kapazität, um den Akku über die Solaranlage nachzuladen.
+
+    ## Voraussetzungen
+    - Sensor für die aktuelle Einspeisung des nachgelagerten (letzten) Solarflow in
+      der Reihe
+    - Smartmeter Sensor für den aktuellen Netzbezug
+    - Sensor und Number für das Einspeiselimit des gesteuerten Hub
+
+    Das Original dieses Blueprint liegt unter
+    [https://git.zyria.de/pyrox/home-assistant-blueprints.git](https://git.zyria.de/pyrox/home-assistant-blueprints.git)
+  source_url: https://github.com/ricariel/home-assistant-blueprints/blob/main/blueprints/automation/ricariel/control-solarflow-chain.yaml
+  domain: automation
+  author: Fabrice Kirchner
+  input:
+    battery_level_sensor:
+      name: Batterieladestand Sensor
+      description: Ein Sensor, welcher den aktuellen Batterieladestand wiedergibt.
+        Bei mir electricLevel
+      selector:
+        entity:
+          domain:
+          - sensor
+          multiple: false
+          filter:
+          - domain:
+            - sensor
+            device_class:
+            - battery
+    output_limit_sensor:
+      name: Einspeiselimit Sensor
+      description: Das aktuelle Einspeiselimit des gesteuerten Hub. Bei mir outputLimit
+      selector:
+        entity:
+          domain:
+          - sensor
+          multiple: false
+          filter:
+          - domain:
+            - sensor
+            device_class:
+            - power
+    output_limit_number:
+      name: Einspeiselimit Schalter
+      description: Eine Number zum Einstellen des Einspeiselimit des gesteuerten Hub.
+        Bei mir outputLimit
+      selector:
+        entity:
+          domain:
+          - number
+          multiple: false
+          filter:
+          - domain:
+            - number
+            device_class:
+            - power
+    downstream_power_sensor:
+      name: Einspeisung des letzten Solarflow in der Reihe
+      description: Was der letzte Hub in der Reihe aktuell ins Haus abgibt. Dieser
+        Wert repräsentiert die gesamte Einspeisung der Reihenschaltung. Bei mir
+        outputHomePower des nachgelagerten Hub
+      selector:
+        entity:
+          domain:
+          - sensor
+          multiple: false
+          filter:
+          - domain:
+            - sensor
+            device_class:
+            - power
+    smartmeter_input_sensor:
+      name: Smartmeter Power Sensor
+      description: Aktueller Netzbezug (Wirkleistung) in Watt. Positive Werte bedeuten
+        Bezug aus dem Netz, negative Werte Einspeisung ins Netz.
+      selector:
+        entity:
+          domain:
+          - sensor
+          multiple: false
+          filter:
+          - domain:
+            - sensor
+            device_class:
+            - power
+    num_inverter_limit:
+      name: Sensor für das maximale Limit des Wechselrichters
+      description: Sensor für das maximale Einspeiselimit des gesteuerten Hub. Bei
+        mir inverseMaxPower
+      selector:
+        entity:
+          domain:
+          - sensor
+          multiple: false
+          filter:
+          - domain:
+            - sensor
+    num_bat_full:
+      name: Wann ist die Batterie als voll anzusehen
+      description: Ein Wert zwischen 0 und 100 wann die Batterie als voll gilt.
+      default: 100
+      selector:
+        number:
+          min: 0.0
+          max: 100.0
+          mode: slider
+          step: 1.0
+    num_bat_empty:
+      name: Wann ist die Batterie als leer anzusehen
+      description: Dieser Wert darf zwischen 0 und 100 liegen. Bei leerem Akku wird
+        die Einspeisung gestoppt.
+      default: 10
+      selector:
+        number:
+          min: 0.0
+          max: 100.0
+          mode: slider
+          step: 1.0
+    num_max_percentage:
+      name: Maximaler Anteil am Bedarf
+      description: Wie viel Prozent des Gesamtbedarfs soll maximal eingespeist werden?
+        Bei 90% verbleibt immer 10% Restbedarf aus dem Netz, sodass der Akku durch
+        Solar nachgeladen werden kann ohne vollständig entladen zu werden.
+      default: 90
+      selector:
+        number:
+          min: 10.0
+          max: 100.0
+          unit_of_measurement: '%'
+          mode: slider
+          step: 1.0
+    num_min_limit:
+      name: Minimales Limit beim Regeln
+      description: Manche Wechselrichter benötigen eine minimale Leistung um gut zu
+        funktionieren. Unterhalb dieses Wertes wird auf 0 geregelt.
+      default: 50
+      selector:
+        number:
+          min: 0.0
+          mode: box
+          step: 1.0
+    num_upper_power_acceptance:
+      name: Oberes akzeptables Limit der Regelabweichung
+      description: Die Steuerung greift erst ein wenn die Abweichung vom Ziel-Netzbezug
+        diesen Wert übersteigt. Dies verhindert zu häufige Regeleingriffe.
+      default: 15
+      selector:
+        number:
+          min: 0.0
+          max: 200.0
+          unit_of_measurement: W
+          mode: slider
+          step: 1.0
+    charge_limit_sensor:
+      name: Akku Ladegrenze Sensor
+      description: Wie weit darf der Akku geladen werden. Bei mir socSet
+      selector:
+        entity:
+          domain:
+          - sensor
+          multiple: false
+          filter:
+          - domain:
+            - sensor
+    max_discharge_level_sensor:
+      name: Akku Entladegrenze Sensor
+      description: Wie weit darf der Akku entladen werden. Bei mir minSoc
+      selector:
+        entity:
+          domain:
+          - sensor
+          multiple: false
+          filter:
+          - domain:
+            - sensor
+    max_discharge_level_number:
+      name: Akku Entladegrenze Number
+      description: Wie weit darf der Akku entladen werden. Wird benötigt um den Akku
+        regelmäßig voll zu bekommen. Bei mir minSoc
+      selector:
+        entity:
+          domain:
+          - number
+          multiple: false
+          filter:
+          - domain:
+            - number
+variables:
+  battery_level_sensor: !input battery_level_sensor
+  output_limit_sensor: !input output_limit_sensor
+  output_limit_number: !input output_limit_number
+  downstream_power_sensor: !input downstream_power_sensor
+  smartmeter_input_sensor: !input smartmeter_input_sensor
+  num_max_percentage: !input num_max_percentage
+  num_min_limit: !input num_min_limit
+  num_upper_power_acceptance: !input num_upper_power_acceptance
+  num_bat_full: !input num_bat_full
+  num_bat_empty: !input num_bat_empty
+  num_inverter_limit: !input num_inverter_limit
+  charge_limit_sensor: !input charge_limit_sensor
+  max_discharge_level_sensor: !input max_discharge_level_sensor
+  max_discharge_level_number: !input max_discharge_level_number
+trigger:
+- platform: state
+  entity_id:
+  - !input smartmeter_input_sensor
+condition:
+- condition: template
+  value_template: >-
+    {% set downstream = states(downstream_power_sensor)|float(0) %}
+    {% set smartmeter = states(smartmeter_input_sensor)|int(0) %}
+    {% set target_smartmeter = (downstream * (100 - num_max_percentage) / [num_max_percentage, 1]|max)|int(0) %}
+    {{ (smartmeter - target_smartmeter)|abs > num_upper_power_acceptance|int(15) }}
+- condition: template
+  value_template: >-
+    {{ now() - state_attr(this.entity_id, "last_triggered") | default(as_datetime(0), true)
+       > timedelta(seconds=4) }}
+action:
+- variables:
+    bat_full: '{{ states(battery_level_sensor)|int(0) >= num_bat_full|int(0) }}'
+    bat_empty: '{{ states(battery_level_sensor)|int(100) + 1 < num_bat_empty|int(0) }}'
+- if:
+  - condition: template
+    value_template: >-
+      {{ bat_full and states(max_discharge_level_sensor)|int(0) > num_bat_empty|int(0) }}
+  then:
+  - service: number.set_value
+    target:
+      entity_id:
+      - !input max_discharge_level_number
+    metadata: {}
+    data:
+      value: '{{ num_bat_empty|int(0) }}'
+- if:
+  - condition: template
+    value_template: '{{ bat_empty }}'
+  then:
+  - service: number.set_value
+    target:
+      entity_id:
+      - !input max_discharge_level_number
+    metadata: {}
+    data:
+      value: '{{ num_bat_full|int(0) }}'
+  - stop: Akku leer. Einspeisung gestoppt.
+- variables:
+    downstream: '{{ states(downstream_power_sensor)|float(0) }}'
+    smartmeter: '{{ states(smartmeter_input_sensor)|int(0) }}'
+    target_smartmeter: >-
+      {{ (downstream * (100 - num_max_percentage) / [num_max_percentage, 1]|max)|int(0) }}
+    error: '{{ smartmeter - target_smartmeter }}'
+    requested_power: '{{ (states(output_limit_sensor)|float(0) + error)|int(0) }}'
+    max_limit: >-
+      {{
+        states(num_inverter_limit)|int(0)
+        if states(battery_level_sensor)|int(0) >= states(max_discharge_level_sensor)|int(0)
+        else 0
+      }}
+    limit: >-
+      {{
+        min([
+          max([
+            requested_power if requested_power >= num_min_limit|int(0) else 0,
+            0
+          ]),
+          max_limit
+        ])
+      }}
+- if:
+  - condition: template
+    value_template: '{{ limit|int(0) == states(output_limit_sensor)|int(0) }}'
+  then:
+  - stop: Limit unverändert. Nichts zu setzen.
+- service: number.set_value
+  target:
+    entity_id:
+    - !input output_limit_number
+  metadata: {}
+  data:
+    value: '{{ limit }}'
+mode: single
+max_exceeded: silent
+trace:
+  stored_traces: 30
