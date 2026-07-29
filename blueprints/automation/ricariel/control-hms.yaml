@@ -221,7 +221,7 @@ condition:
   - condition: template
     value_template: >-
       {{ now() - state_attr(this.entity_id, "last_triggered") | default(as_datetime(0), true)
-         > timedelta(seconds=num_request_limit) }}
+          > timedelta(seconds=num_request_limit) }}
   - condition: state
     entity_id: !input reachable_sensor
     state: 'on'

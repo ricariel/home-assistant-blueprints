@@ -10,7 +10,7 @@ blueprint:
     ## Zweck
     Durch das Begrenzen auf z.B. 90% des Bedarfs bleibt immer ein Restbedarf aus dem
     Netz bestehen. Dadurch wird verhindert, dass der gesteuerte Akku vollständig
-    entladen wird – es bleibt Kapazität, um den Akku über die Solaranlage nachzuladen.
+    entladen wird - es bleibt Kapazität, um den Akku über die Solaranlage nachzuladen.
 
     ## Voraussetzungen
     - Sensor für die aktuelle Einspeisung des nachgelagerten (letzten) Solarflow in
@@ -225,7 +225,7 @@ condition:
 - condition: template
   value_template: >-
     {{ now() - state_attr(this.entity_id, "last_triggered") | default(as_datetime(0), true)
-       > timedelta(seconds=4) }}
+      > timedelta(seconds=4) }}
 action:
 - variables:
     bat_full: '{{ states(battery_level_sensor)|int(0) >= num_bat_full|int(0) }}'

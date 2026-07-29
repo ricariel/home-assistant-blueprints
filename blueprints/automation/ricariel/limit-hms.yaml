@@ -84,7 +84,7 @@ condition:
   - condition: template
     value_template: >-
       {{ now() - state_attr(this.entity_id, "last_triggered") | default(as_datetime(0), true)
-         > timedelta(seconds=request_limit) }}
+        > timedelta(seconds=request_limit) }}
 action:
   - variables:
       current_smartmeter: '{{ states(smartmeter_entity)|float(0) }}'
