@@ -1,0 +1,6 @@
+---
+# Fortlaufende Prosa laesst sich nicht sinnvoll umbrechen.
+MD013: false
+# Tabellen-Pipes ausrichten. Neu in markdownlint 0.49, rein kosmetisch.
+# Wortgleich zu den uebrigen Repositories.
+MD060: false
