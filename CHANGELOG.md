@@ -3,7 +3,7 @@
 Alle nennenswerten Änderungen an diesem Repository.
 Automatisch aus [Conventional Commits](https://www.conventionalcommits.org) via [git-cliff](https://git-cliff.org).
 
-## [Unreleased]
+## [1.0.3] - 2026-09-28 ([Vergleich zur Vorversion](https://git.zyria.de/pyrox/home-assistant-blueprints/compare/v1.0.2...v1.0.3))
 
 ### ✨ Features
 
