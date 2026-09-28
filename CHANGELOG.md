@@ -98,6 +98,7 @@ Zentrale pyrox/actions @v1 nutzen ([db0e54d](https://git.zyria.de/pyrox/home-ass
 
 ### 🧹 Miscellaneous
 
+- **pre-commit**: Enable no-infra-leaks and pin v1.1.3
 - **lint**: Erzeugtes CHANGELOG.md von den Hooks ausnehmen
 - **pre-commit**: Auf gemeinsame Basis plus Profile umstellen
 
