@@ -3,6 +3,13 @@
 Alle nennenswerten Änderungen an diesem Repository.
 Automatisch aus [Conventional Commits](https://www.conventionalcommits.org) via [git-cliff](https://git-cliff.org).
 
+## [Unreleased]
+
+### 🔧 CI/Build
+
+- **renovate**:
+Pass heartbeat and coverage report inputs ([6dadb81](https://git.zyria.de/pyrox/home-assistant-blueprints/commit/6dadb81d6f983245242da51221189fb534911ebb))
+
 ## [1.0.3] - 2026-09-28 ([Vergleich zur Vorversion](https://git.zyria.de/pyrox/home-assistant-blueprints/compare/v1.0.2...v1.0.3))
 
 ### ✨ Features
