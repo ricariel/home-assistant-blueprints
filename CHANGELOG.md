@@ -5,6 +5,10 @@ Automatisch aus [Conventional Commits](https://www.conventionalcommits.org) via 
 
 ## [Unreleased]
 
+### 📝 Documentation
+
+- **license**: Name the copyright holder ([e083d22](https://git.zyria.de/pyrox/home-assistant-blueprints/commit/e083d228e8547e47e4540576e582ebcec50de547))
+
 ### 🔧 CI/Build
 
 - **mirror**: Run the mirrors daily and on demand ([c7c8994](https://git.zyria.de/pyrox/home-assistant-blueprints/commit/c7c8994411c2b6875077906279ed3cf95bdf6e19))
