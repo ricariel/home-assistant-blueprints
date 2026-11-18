@@ -1,7 +1,7 @@
 # Changelog
 
-Alle nennenswerten Änderungen an diesem Repository.
-Automatisch aus [Conventional Commits](https://www.conventionalcommits.org) via [git-cliff](https://git-cliff.org).
+All notable changes to this repository.
+Generated automatically from [Conventional Commits](https://www.conventionalcommits.org) via [git-cliff](https://git-cliff.org).
 
 ## [Unreleased]
 
@@ -15,10 +15,11 @@ Automatisch aus [Conventional Commits](https://www.conventionalcommits.org) via 
 
 ### 🔧 CI/Build
 
+- **workflows**: Take over the english workflow templates ([fb651e2](https://git.zyria.de/pyrox/home-assistant-blueprints/commit/fb651e296d9ef9bacba5a8abe39947f3bb5a02cb))
 - **mirror**: Run the mirrors daily and on demand ([c7c8994](https://git.zyria.de/pyrox/home-assistant-blueprints/commit/c7c8994411c2b6875077906279ed3cf95bdf6e19))
 - **renovate**: Pass heartbeat and coverage report inputs ([6dadb81](https://git.zyria.de/pyrox/home-assistant-blueprints/commit/6dadb81d6f983245242da51221189fb534911ebb))
 
-## [1.0.3] - 2026-09-28 ([Vergleich zur Vorversion](https://git.zyria.de/pyrox/home-assistant-blueprints/compare/v1.0.2...v1.0.3))
+## [1.0.3] - 2026-09-28 ([compare with the previous version](https://git.zyria.de/pyrox/home-assistant-blueprints/compare/v1.0.2...v1.0.3))
 
 ### ✨ Features
 
