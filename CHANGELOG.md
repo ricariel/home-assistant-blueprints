@@ -15,6 +15,7 @@ Generated automatically from [Conventional Commits](https://www.conventionalcomm
 
 ### 🔧 CI/Build
 
+- **workflows**: Gate renovate branches and cache the test deps ([880c9c6](https://git.zyria.de/pyrox/home-assistant-blueprints/commit/880c9c67c2e47806918a8f4be40c09295eb4a18f))
 - **workflows**: Take over the english workflow templates ([fb651e2](https://git.zyria.de/pyrox/home-assistant-blueprints/commit/fb651e296d9ef9bacba5a8abe39947f3bb5a02cb))
 - **mirror**: Run the mirrors daily and on demand ([c7c8994](https://git.zyria.de/pyrox/home-assistant-blueprints/commit/c7c8994411c2b6875077906279ed3cf95bdf6e19))
 - **renovate**: Pass heartbeat and coverage report inputs ([6dadb81](https://git.zyria.de/pyrox/home-assistant-blueprints/commit/6dadb81d6f983245242da51221189fb534911ebb))
